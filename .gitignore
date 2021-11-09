@@ -1,0 +1,19 @@
+### IDE ###
+.idea
+
+### ENV ###
+.env
+
+### Python ###
+__pycache__/
+
+### Django ###
+*.pyc
+*.sqlite3
+# learning_log/settings.py
+/static
+# /learning_logs/migrations
+/media
+
+### Other ###
+help.txt
