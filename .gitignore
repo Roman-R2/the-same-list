@@ -4,6 +4,10 @@
 ### ENV ###
 .env
 
+### VENV ###
+/venv
+/venv2
+
 ### Python ###
 __pycache__/
 
