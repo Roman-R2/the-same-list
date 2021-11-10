@@ -5,8 +5,8 @@
 .env
 
 ### VENV ###
-/venv
-/venv2
+venv
+venv_microsoft
 
 ### Python ###
 __pycache__/
