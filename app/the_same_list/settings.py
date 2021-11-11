@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv("../.env.dev")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +32,12 @@ ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(" ")
 # Application definition
 
 INSTALLED_APPS = [
+    # My apps
+    'products_list',
+
+    # Third Party Applications
+
+    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,7 +81,7 @@ WSGI_APPLICATION = 'the_same_list.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': os.environ.get("DB_ENGINE"),
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
