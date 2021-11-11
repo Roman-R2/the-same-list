@@ -15,9 +15,8 @@ __pycache__/
 ### Django ###
 *.pyc
 *.sqlite3
-# learning_log/settings.py
-/static
-# /learning_logs/migrations
+/app/static
+/app/products_list/migrations
 /media
 
 ### Other ###

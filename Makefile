@@ -14,7 +14,12 @@ docker-build:
 	docker-compose build
 
 migrate:
+	# docker-compose exec web python manage.py flush --noinput
+	docker-compose exec web python manage.py makemigrations --noinput
 	docker-compose exec web python manage.py migrate --noinput
 
 logs:
 	docker-compose logs -f
+
+shell:
+	docker-compose exec web python manage.py shell

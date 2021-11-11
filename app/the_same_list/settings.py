@@ -13,7 +13,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv("../.env.dev")
+# load_dotenv("../.env.dev")
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,7 +36,8 @@ INSTALLED_APPS = [
     # My apps
     'products_list',
 
-    # Third Party Applications
+    # Third party apps
+    'debug_toolbar',
 
     # Django apps
     'django.contrib.admin',
@@ -47,6 +49,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Third party MIDDLEWARE
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+
+    # Django
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -121,12 +127,32 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
-STATIC_URL = '/static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.2/howto/static-files/
+
+# Настраиваем папки для статических файлов
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'the_same_list/static')
+]
+
+# Укажем django куда помещать выгружаемые файлы
+# Это одна и та же папка, только адреса разные
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+
+# Настройки от debug toolbar
+def show_toolbar(request):
+    return True
+
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': show_toolbar,
+}
