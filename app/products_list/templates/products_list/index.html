@@ -1,10 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <h1>List</h1>
-</body>
-</html>
+{% extends "products_list/base.html" %}
+
+
+{% block content %}
+
+<div class="row featurette m_mt4">
+    <div class="col-md-12">
+        {% for list in products_list %}
+
+        <p>{{list.title}}</p>
+
+        {% for product in list.products.all %}
+        <p> ---> {{ product.name }}</p>
+        {% endfor %}
+
+        {% empty %}
+
+        <p>Не одного списка продуктов пока не добавлено</p>
+
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %}

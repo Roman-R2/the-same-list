@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from .models import ProductList, Product
 
 
 def index(request):
-    """Домашняя страница приложения Learning Log"""
-    return render(request, 'products_list/index.html')
+    products_list = ProductList.objects.filter(owner=request.user).order_by('-created_at')
+    context = {"products_list": products_list}
+    return render(request, 'products_list/index.html', context=context)
