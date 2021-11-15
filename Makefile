@@ -23,3 +23,6 @@ logs:
 
 shell:
 	docker-compose exec web python manage.py shell
+
+runserver:
+	docker-compose exec web python manage.py runserver

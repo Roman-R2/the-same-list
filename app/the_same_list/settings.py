@@ -35,9 +35,12 @@ ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(" ")
 INSTALLED_APPS = [
     # My apps
     'products_list',
+    'main_page',
+    'users',
 
     # Third party apps
     'debug_toolbar',
+    "django_bootstrap5",
 
     # Django apps
     'django.contrib.admin',
@@ -67,7 +70,7 @@ ROOT_URLCONF = 'the_same_list.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,6 +135,9 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Чтобы django знал, где после @login_required находится страница аутентификации
+LOGIN_URL = '/users/login/'
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
@@ -139,7 +145,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'the_same_list/static')
+    os.path.join(BASE_DIR, 'the_same_list/static'),
+    os.path.join(BASE_DIR, 'products_list/static'),
 ]
 
 # Укажем django куда помещать выгружаемые файлы
