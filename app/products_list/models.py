@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 class Product(models.Model):
     name = models.CharField(max_length=150)
+    quantity = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return self.name
@@ -26,3 +27,15 @@ class ProductList(models.Model):
         verbose_name = 'Список продуктов'
         verbose_name_plural = 'Списки продуктов'
         ordering = ['-created_at']
+
+
+class ProductDictionary(models.Model):
+    name = models.CharField(max_length=150)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = ' Словарь продуктов'
+        verbose_name_plural = 'Словари продуктов'
+        ordering = ['name']

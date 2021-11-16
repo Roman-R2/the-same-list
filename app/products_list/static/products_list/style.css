@@ -1,0 +1,40 @@
+.product-block {
+    position: relative;
+    z-index: 1000;
+    min-width: 10rem;
+    padding: 0.5rem 0;
+    margin-top: 0px;
+    font-size: 1rem;
+    color: #212529;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+}
+
+.wrap {
+    position: absolute;
+    margin: 0 auto; /*центрируем ее*/
+    height: 40px; /*Задаем высоту обертки*/
+    z-index: 1000;
+}
+
+.bblock {
+    float: left; /*Задаем обтекание*/
+    line-height: 40px; /*Высота строки +  верт. центрирования текста*/
+    font-size: 18px;
+    background-color: #fff;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    text-align: center; /*Центрируем текст по горизонтали*/
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    padding: 5px 10px;
+    color: #212529;
+    border-radius: 0.25rem;
+}
+
+.wrap :last-child {
+    margin-right: 0px; /*Убираем поле последнего div-а*/
+}

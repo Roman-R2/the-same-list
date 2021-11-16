@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'products_list',
     'main_page',
     'users',
+    'api_v1',
 
     # Third party apps
     'debug_toolbar',
