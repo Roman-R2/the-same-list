@@ -5,25 +5,23 @@
 
 <script>
   'use strict';
-  let lists = JSON.parse('{{ data|safe }}');
-  let productsDict = JSON.parse('{{ products_dict|safe }}');
+  // let lists = JSON.parse('{{ data|safe }}');
 
-  // console.log(productsDict);
 
   window.addEventListener('load', (event) => {
 
-    if (Object.keys(lists).length === 0 && lists.constructor === Object) {
-      let mainRowEl = document.querySelector('#mainRow');
-      mainRowEl.innerHTML =
-        "<h4>У вас пока не добавлено ни одного списка. <a href='#'>Добавить.</a></h4>";
-
-    } else {
-      let productList = new ProductList(lists);
+    // if (Object.keys(lists).length === 0 && lists.constructor === Object) {
+    //   let mainRowEl = document.querySelector('#mainRow');
+    //   mainRowEl.innerHTML =
+    //     "<h4>У вас пока не добавлено ни одного списка. <a href='#'>Добавить.</a></h4>";
+    //
+    // } else {
+      let productList = new ProductList();
       productList.init();
 
       let productInput = new AddProductInput();
       productInput.init();
-    }
+
 
   });
 </script>

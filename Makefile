@@ -14,7 +14,6 @@ docker-build:
 	docker-compose build
 
 migrate:
-	# docker-compose exec web python manage.py flush --noinput
 	docker-compose exec web python manage.py makemigrations
 	docker-compose exec web python manage.py migrate --noinput
 
@@ -29,3 +28,12 @@ runserver:
 
 collectstatic:
 	docker-compose exec web python manage.py collectstatic
+
+createsuperuser:
+	docker-compose exec web python manage.py createsuperuser
+
+restore-db: docker-down
+	docker volume rm thesamelist_postgres-volume
+	make docker-up
+	make migrate
+	make createsuperuser

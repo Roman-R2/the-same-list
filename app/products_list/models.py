@@ -2,22 +2,22 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Product(models.Model):
+class ProductDictionary(models.Model):
     name = models.CharField(max_length=150)
-    quantity = models.CharField(max_length=100, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = 'Продукт'
-        verbose_name_plural = 'Продукты'
+        verbose_name = ' Словарь всех продуктов'
+        verbose_name_plural = 'Словари всех продуктов'
+        ordering = ['name']
 
 
 class ProductList(models.Model):
     title = models.CharField(max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
-    products = models.ManyToManyField(Product, blank=True, related_name='products')
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -29,13 +29,14 @@ class ProductList(models.Model):
         ordering = ['-created_at']
 
 
-class ProductDictionary(models.Model):
-    name = models.CharField(max_length=150)
+class Product(models.Model):
+    product_in_dict = models.ForeignKey(ProductDictionary, on_delete=models.CASCADE)
+    quantity = models.CharField(max_length=100, blank=True)
+    lists = models.ManyToManyField(ProductList, related_name='products')
 
     def __str__(self):
-        return self.name
+        return self.product_in_dict.name
 
     class Meta:
-        verbose_name = ' Словарь продуктов'
-        verbose_name_plural = 'Словари продуктов'
-        ordering = ['name']
+        verbose_name = 'Продукты по спискам'
+        verbose_name_plural = 'Продукты по спискам'

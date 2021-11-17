@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # Third party apps
     'debug_toolbar',
     "django_bootstrap5",
+    # 'django_seed',
 
     # Django apps
     'django.contrib.admin',

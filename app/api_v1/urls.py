@@ -6,4 +6,5 @@ urlpatterns = [
     # Домашняя страница
     path('v1/get_products_dict/', views.get_products_dict, name='get_products_dict'),
     path('v1/add_product/', views.add_product, name='add_product'),
+    path('v1/get_lists_and_products/', views.get_lists_and_products, name='get_lists_and_products'),
 ]
