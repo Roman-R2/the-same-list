@@ -15,10 +15,23 @@ class ProductDictionary(models.Model):
         ordering = ['name']
 
 
+class Product(models.Model):
+    product_in_dict = models.ForeignKey(ProductDictionary, on_delete=models.CASCADE)
+    quantity = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.product_in_dict.name
+
+    class Meta:
+        verbose_name = 'Продукты по спискам'
+        verbose_name_plural = 'Продукты по спискам'
+
+
 class ProductList(models.Model):
     title = models.CharField(max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, blank=True, related_name='products')
 
     def __str__(self):
         return self.title
@@ -27,16 +40,3 @@ class ProductList(models.Model):
         verbose_name = 'Список продуктов'
         verbose_name_plural = 'Списки продуктов'
         ordering = ['-created_at']
-
-
-class Product(models.Model):
-    product_in_dict = models.ForeignKey(ProductDictionary, on_delete=models.CASCADE)
-    quantity = models.CharField(max_length=100, blank=True)
-    lists = models.ManyToManyField(ProductList, related_name='products')
-
-    def __str__(self):
-        return self.product_in_dict.name
-
-    class Meta:
-        verbose_name = 'Продукты по спискам'
-        verbose_name_plural = 'Продукты по спискам'

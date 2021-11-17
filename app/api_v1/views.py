@@ -20,9 +20,13 @@ def get_products_dict(request):
 
 @csrf_exempt
 def add_product(request):
+    """
+    Получает json формата {"product_id": 1 ,"list_id": "1" }
+    и добавляет продукт по id из данного json в список по id из данного json
+    :param request:
+    :return: JsonResponse
+    """
     if request.method == 'POST' and request.user.is_authenticated:
-        # {"product_id":3,"list_id":"1"}'
-        # print("BODY:", request.body)
         # print(request.user.username)
 
         unpack_json = json.loads(request.body)
@@ -30,6 +34,7 @@ def add_product(request):
         list_id = unpack_json['list_id']
 
         product_list = ProductList.objects.get(pk=list_id)
+        product_list.products
         print(product_list)
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"})

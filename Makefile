@@ -35,5 +35,8 @@ createsuperuser:
 restore-db: docker-down
 	docker volume rm thesamelist_postgres-volume
 	make docker-up
+	docker-compose exec web rm -fr products_list/migrations
+	docker-compose exec web mkdir products_list/migrations
+	docker-compose exec web touch products_list/migrations/__init__.py
 	make migrate
 	make createsuperuser

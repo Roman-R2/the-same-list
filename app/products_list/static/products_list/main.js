@@ -138,7 +138,10 @@ class AddProductInput {
      */
     this.productChoiceEl.addEventListener('click', ({target}) => {
       this.clearProductButtonsFromWindow();
-      console.log('click')
+      if (target.tagName === "A") {
+        console.log('click');
+        this.sendJSON(this.getListId(), target.dataset.productid);
+      }
     })
   }
 
@@ -159,7 +162,7 @@ class AddProductInput {
     let str = ``;
 
     Object.keys(renderObj).forEach(product_id => {
-      str += `<a href="#" class="bblock" onclick="new AddProductInput().sendJSON(${product_id});">${renderObj[product_id]}</a>`;
+      str += `<a href="#" class="bblock" data-productid="${product_id}">${renderObj[product_id]}</a>`;
     });
 
     this.clearProductButtonsFromWindow();
@@ -185,9 +188,9 @@ class AddProductInput {
      */
     let list_id = 0;
     let productListsEl = document.querySelectorAll('#productLists li');
-    productListsEl.forEach(el=> {
-      if(el.classList.contains('active')){
-        list_id =  el.dataset.id;
+    productListsEl.forEach(el => {
+      if (el.classList.contains('active')) {
+        list_id = el.dataset.id;
       }
     })
     if (list_id) {
@@ -197,7 +200,7 @@ class AddProductInput {
     }
   }
 
-  sendJSON(product_id) {
+  sendJSON(list_id, product_id) {
     let xhr = new XMLHttpRequest();
     let url = "http://localhost:8000/api/v1/add_product/";
     // открываем соединение
@@ -211,7 +214,7 @@ class AddProductInput {
       }
     };
     // преобразуем наши данные JSON в строку
-    let data = JSON.stringify({"product_id": product_id, "list_id": this.getListId()});
+    let data = JSON.stringify({"product_id": product_id, "list_id": list_id});
     // когда всё готово, отправляем JSON на сервер
     xhr.send(data);
   }
