@@ -16,6 +16,7 @@ docker-build:
 migrate:
 	docker-compose exec web python manage.py makemigrations
 	docker-compose exec web python manage.py migrate --noinput
+	# echo "from products_list.models import execute_my_sql_for_create_view_in_db; execute_my_sql_for_create_view_in_db()" | docker-compose exec -T web python manage.py shell
 
 logs:
 	docker-compose logs -f
@@ -30,7 +31,7 @@ collectstatic:
 	docker-compose exec web python manage.py collectstatic
 
 createsuperuser:
-	docker-compose exec web python manage.py createsuperuser
+	docker-compose exec web python manage.py createsuperuser --noinput
 
 restore-db: docker-down
 	docker volume rm thesamelist_postgres-volume
@@ -40,3 +41,7 @@ restore-db: docker-down
 	docker-compose exec web touch products_list/migrations/__init__.py
 	make migrate
 	make createsuperuser
+	docker-compose exec web python manage.py loaddata product
+	docker-compose exec web python manage.py loaddata list
+	docker-compose exec web python manage.py loaddata product_in_list
+

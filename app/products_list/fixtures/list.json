@@ -1,0 +1,20 @@
+[
+  {
+    "model": "products_list.list",
+    "pk": 1,
+    "fields": {
+      "title": "Пустой список",
+      "created_at": null,
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.list",
+    "pk": 2,
+    "fields": {
+      "title": "Купить в перекрестке",
+      "created_at": null,
+      "owner": 1
+    }
+  }
+]

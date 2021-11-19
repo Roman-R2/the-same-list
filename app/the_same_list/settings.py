@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # load_dotenv("../.env.dev")
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
 ]
 
 MIDDLEWARE = [
@@ -165,3 +167,27 @@ def show_toolbar(request):
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': show_toolbar,
 }
+
+DJANGO_SETTINGS_MODULE = 'the_same_list'
+
+# Если мы в режиме дебага, то добавляем переменные окружения для автоматической генерации
+# суперпользователя командой python manage.py createsuperuser --noinput
+if DEBUG is True:
+    DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME')
+    DJANGO_SUPERUSER_PASSWORD = os.getenv('DJANGO_SUPERUSER_PASSWORD')
+    DJANGO_SUPERUSER_EMAIL = os.getenv('DJANGO_SUPERUSER_EMAIL')
+
+
+# Эксперимент с выполнением sql запроса для создания представления(VIEW) в БД
+# def execute_my_sql_for_create_view_in_db():
+#     """Создает представление app_all_product в базе данных"""
+#     from django.db import connection
+#     query = """CREATE VIEW app_all_product AS
+#                     SELECT id, name from app_common_product
+#                     UNION
+#                     SELECT 10000+id as id, name from app_user_product"""
+#     cursor = connection.cursor()
+#     cursor.execute(query)
+#
+#
+# SOME_FUNC = execute_my_sql_for_create_view_in_db

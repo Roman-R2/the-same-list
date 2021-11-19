@@ -2,12 +2,12 @@ import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from .models import ProductList, ProductDictionary
+from .models import List, Product, ProductInList
 
 
 @login_required
 def index(request):
-    product_lists = ProductList.objects.filter(owner=request.user)
+    product_lists = List.objects.filter(owner=request.user)
 
     # Создадим словарь списков пользователя для последующей передачи json
     # data = {}

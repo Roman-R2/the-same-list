@@ -1,0 +1,58 @@
+[
+  {
+    "model": "products_list.product",
+    "pk": 1,
+    "fields": {
+      "name": "Молоко",
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.product",
+    "pk": 2,
+    "fields": {
+      "name": "Сметана",
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.product",
+    "pk": 3,
+    "fields": {
+      "name": "Сыр",
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.product",
+    "pk": 4,
+    "fields": {
+      "name": "Гречка",
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.product",
+    "pk": 5,
+    "fields": {
+      "name": "Рис",
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.product",
+    "pk": 6,
+    "fields": {
+      "name": "Мясо индейки",
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.product",
+    "pk": 7,
+    "fields": {
+      "name": "Шампиньоны",
+      "owner": 1
+    }
+  }
+]

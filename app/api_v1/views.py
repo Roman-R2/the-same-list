@@ -5,12 +5,12 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from products_list.models import ProductDictionary, ProductList
+from products_list.models import List, Product, ProductInList
 
 
 @login_required
 def get_products_dict(request):
-    products_dict = ProductDictionary.objects.all()
+    products_dict = Product.objects.all()
     # Создадим словарь типовых продуктов
     dict_data = {}
     for some_product in products_dict:
@@ -32,22 +32,34 @@ def add_product(request):
         unpack_json = json.loads(request.body)
         product_id = unpack_json['product_id']
         list_id = unpack_json['list_id']
+        quantity = unpack_json['quantity']
 
-        product_list = ProductList.objects.get(pk=list_id)
-        product_list.products
-        print(product_list)
+        ProductInList.objects.create(
+            name=Product.objects.get(pk=product_id),
+            list=List.objects.get(pk=list_id),
+            quantity=quantity, owner=request.user
+        )
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"})
 
 
 def get_lists_and_products(request):
-    product_lists = ProductList.objects.filter(owner=request.user)
+    """
+    Получает из бызы данных списки пользователя и продукты по этим спискам,
+    формирует объект списков с продуктами и отправляет json
+    :param request:
+    :return:
+    """
+    lists = List.objects.filter(owner=request.user)
+
     data = {}
-    for some_list in product_lists:
+    for some_list in lists:
+        products_for_list = ProductInList.objects.filter(owner=request.user, list=some_list)
+
         products = {}
-        for some_set in some_list.products.all():
+        for product in products_for_list:
             products.update({
-                some_set.pk: some_set.product_in_dict.name,
+                product.pk: product.name.name,
             })
         data.update({
             some_list.pk: {
@@ -55,4 +67,17 @@ def get_lists_and_products(request):
                 'products': products,
             }
         })
+
     return JsonResponse(data)
+
+
+@csrf_exempt
+def get_product_name_for_id(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        unpack_json = json.loads(request.body)
+        product_id = unpack_json['product_id']
+
+        requested_product = Product.objects.get(pk=product_id)
+
+        return JsonResponse({"status": "success", "product_name": requested_product.name})
+    return JsonResponse({"status": "error"})

@@ -1,47 +1,155 @@
 'use strict';
 
-class ProductList {
+// -----------------------------------------------------------
+//--------------------- SomeJsonRequests ---------------------
+// -----------------------------------------------------------
+class SomeJsonRequests {
   /**
+   * Класс для выполнения запросов к серверу
+   * @returns {Promise<unknown>}
+   */
+
+  sendJSONRequest(url, json) {
+    return new Promise(function (resolve, reject) {
+      let xhr = new XMLHttpRequest();
+      xhr.open("POST", url);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onload = function () {
+        if (this.status >= 200 && this.status < 300) {
+          resolve(xhr.response);
+        } else {
+          reject({
+            status: this.status,
+            statusText: xhr.statusText
+          });
+        }
+      };
+      xhr.onerror = function () {
+        reject({
+          status: this.status,
+          statusText: xhr.statusText
+        });
+      };
+      let data = JSON.stringify(json);
+      xhr.send(data);
+    });
+  }
+}
+
+// -----------------------------------------------------------
+//--------------------- ProductListV2 ------------------------
+// -----------------------------------------------------------
+class ProductListV2 {
+  /**
+   * Версия вторая
    * Класс служит для отобрабения списков и продуктов по спискам
    * @type {Element}
    */
   productListsEl = document.querySelector('#productLists');
   productsEl = document.querySelector('#products');
-
-
-  constructor(lists) {
-    this.lists = lists;
-
-  }
+  addProductInputEl = document.querySelector('#addProductInput');
+  productChoiceEl = document.querySelector('#productChoice');
+  receivedListObj = {}
 
   init() {
+    // Получим список с сервера
     this.getListsWithProducts();
+    this.focusOnProductInput();
   }
+
 
   getListsWithProducts() {
     /**
-     * Получает объект, содержащий списки и продукты по спискам
+     * Получает обыект списков с продуктами и передает полученный объект listsObj далее на обработку
+     * методу workWithTheReceivedList
+     * @type {Promise<any>}
      */
-    const lists = new FetchClass().fetchJSONFromURL('http://localhost:8000/api/v1/get_lists_and_products/');
-    console.log(lists);
+    const lists = new FetchClass()
+      .fetchJSONFromURL('http://localhost:8000/api/v1/get_lists_and_products/');
 
     const catchUserLists = async () => {
       const listsObj = await lists;
 
-      console.log(listsObj);
+      // Добавим полученный объект в свойство класса
+      this.addListObjectToClass(listsObj);
 
-      // Отрисуем списки продуктов для пользователя
-      this.drawProductLists(listsObj);
-
-      // Отрисуем продукты в конкретном списке
-      this.drawProductsForId(listsObj, Object.keys(listsObj)[0]);
-
-      // Добавим функционала при клике на списки пользователя
-      this.setFunctionalForClickProductsList(listsObj);
+      //Начнем отрисовке на основе полученного объекта
+      this.workWithTheReceivedList(listsObj)
     };
-
-    catchUserLists();
+    catchUserLists().then();
   }
+
+  addListObjectToClass(receivedListObj) {
+    this.receivedListObj = receivedListObj;
+  }
+
+  workWithTheReceivedList() {
+    /**
+     * Производит с полученным объектом действия добавления событий и отрисовки
+     */
+
+    console.log(this.receivedListObj);
+
+
+    // Отрисуем списки продуктов для пользователя
+    this.drawProductLists(this.receivedListObj);
+
+    // Отрисуем продукты в первом списке и добавим выдиление
+    this.drawProductsForListId(Object.keys(this.receivedListObj)[0]);
+    this.addActiveClassForList(Object.keys(this.receivedListObj)[0]);
+
+    // Добавим функционала при клике на списки пользователя
+    this.setFunctionalForClickProductsList();
+
+  }
+
+  drawOneProductToEndListAndAddToObject(listId, productId, productName) {
+    let str = ``;
+    str += `<label class="list-group-item">
+                  <input class="form-check-input me-1" type="checkbox" value="" data-id="${productId}">
+                  ${productName}
+              </label>`;
+    this.productsEl.insertAdjacentHTML('beforeend', str);
+    this.addProductToObjectInClass(listId, productId, productName);
+  }
+
+  addProductToObjectInClass(listId, productId, productName) {
+    /**
+     * Добавит продукт в объект списков класса ProductListV2 по переданным аргументам
+     */
+    console.log('this.receivedListObj ---> ', this.receivedListObj[listId]['products']);
+    // TODO
+    // this.receivedListObj[listId]['products'] += {
+    //   ...this.receivedListObj[listId]['products'],
+    //   ...{productId: productName}
+    // };
+    console.log('this.receivedListObj ---> ', this.receivedListObj[listId]['products']);
+
+  }
+
+  askForProductAndDrawInList(listId, productId) {
+    /**
+     * Отправит запрос на сервер и дорисует новый продукт productId в конец списка listId
+     * @type {XMLHttpRequest}
+     */
+
+    // ------------ Конструкция асинхронного запроса--------------
+    new SomeJsonRequests().sendJSONRequest(
+      document.location.origin + "/api/v1/get_product_name_for_id/",
+      {"product_id": productId}
+    ).then((data) => {
+      let product = JSON.parse(data);
+      console.log('-------------> ', product.product_name)
+      this.drawOneProductToEndListAndAddToObject(listId, productId, product.product_name);
+      console.log(this);
+
+    }).catch((err) => {
+      console.error('Ошибка запроса к серверу!', err.statusText);
+    });
+    // ------------------------------------------------------------
+
+  }
+
 
   drawProductLists(lists) {
     let str = ``;
@@ -54,11 +162,10 @@ class ProductList {
     this.productListsEl.insertAdjacentHTML('beforeend', str);
   }
 
-  drawProductsForId(listsObj, list_id) {
-    this.addActiveClassForList(list_id);
+  drawProductsForListId(listId) {
     this.clearProductsFromLabels();
     let str = ``;
-    let odj = listsObj[list_id]['products'];
+    let odj = this.receivedListObj[listId]['products'];
     Object.keys(odj).forEach(product_id => {
       str += `<label class="list-group-item">
                   <input class="form-check-input me-1" type="checkbox" value="">
@@ -69,10 +176,21 @@ class ProductList {
     this.productsEl.insertAdjacentHTML('beforeend', str);
   }
 
-  setFunctionalForClickProductsList(listsObj) {
+  addActiveClassForList(listId) {
+    this.productListsEl.querySelectorAll('li').forEach(el => {
+      if (el.dataset.id == listId) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
+  }
+
+  setFunctionalForClickProductsList() {
     this.productListsEl.addEventListener('click', ({target}) => {
       if (target.tagName === "LI") {
-        this.drawProductsForId(listsObj, target.dataset.id);
+        this.drawProductsForListId(target.dataset.id);
+        this.addActiveClassForList(target.dataset.id);
       }
     });
   }
@@ -81,73 +199,78 @@ class ProductList {
     this.productsEl.innerHTML = '';
   }
 
-  addActiveClassForList(id) {
-    this.productListsEl.querySelectorAll('li').forEach(el => {
-      if (el.dataset.id == id) {
-        el.classList.add('active');
-      } else {
-        el.classList.remove('active');
-      }
-    });
-  }
-
-}
-
-class AddProductInput {
-  /**
-   * Класс служит для функционала добавления продуктов в поле inpyt
-   * @type {Element}
-   */
-  addProductInputEl = document.querySelector('#addProductInput');
-  productChoiceEl = document.querySelector('#productChoice');
-
-  init() {
-    console.log('init AddProductInput');
-    this.focusOnProductInput();
-    // this.blurArea();
-  }
-
   focusOnProductInput() {
+    /**
+     * Добавляет событие на выбор поля для ввода нового продукта в список
+     */
     // Событие на фокусировку поля
     this.addProductInputEl.addEventListener('focus', ({target}) => {
 
+      console.log('addEventListener_focus');
       // Вернем объект с продуктами,а когда придет информация от сервера то забирем продукты в объект allProducts класса AddProductInput
-      const products = new FetchClass().fetchJSONFromURL('http://localhost:8000/api/v1/get_products_dict/');
+      const products = new FetchClass().fetchJSONFromURL(document.location.origin + '/api/v1/get_products_dict/');
 
       const catchProducts = async () => {
         const productsObj = await products;
 
         this.renderAdditionProductButtons(productsObj);
 
-        // Событие клика по кнопкам продукта productChoiceEl
-        this.setEventForClickNewProduct();
-
-        // Событие расфокусировки с поля addProductInputEl
-        this.setEventForOutingFromNewProductInput();
-
       };
 
       catchProducts();
 
     });
+
+    // Событие клика по кнопкам продукта productChoiceEl
+    this.setEventForClickNewProduct();
+
+    // Событие расфокусировки с поля addProductInputEl
+    this.setEventForOutingFromNewProductInput();
   }
 
   setEventForClickNewProduct() {
     /**
-     * Добавляет событие клика по кнопкам продукта productChoiceEl
+     * Добавляет событие клика по кнопкам продукта productChoiceEl и отправляет данные на сервер
      */
     this.productChoiceEl.addEventListener('click', ({target}) => {
       this.clearProductButtonsFromWindow();
       if (target.tagName === "A") {
         console.log('click');
-        this.sendJSON(this.getListId(), target.dataset.productid);
+
+        this.sendJSONNewProductToServer(this.getListId(), target.dataset.productid);
+
+        // this.sendJSON(this.getListId(), target.dataset.productid);
       }
     })
   }
 
+  sendJSONNewProductToServer(listId, productId) {
+    /**
+     * Отправляет данные о новом продукте на сервер
+     */
+
+    let json = {"product_id": productId, "list_id": listId, "quantity": "500 гр."}
+
+    // ------------ Конструкция асинхронного запроса--------------
+    new SomeJsonRequests().sendJSONRequest(
+      document.location.origin + "/api/v1/add_product/",
+      json
+    ).then((data) => {
+        let product = JSON.parse(data);
+        console.log('-------------> ', product.status)
+        // Дорисуем новый продукт в конец списка
+        this.askForProductAndDrawInList(listId, productId);
+
+      }
+    ).catch((err) => {
+      console.error('Ошибка запроса к серверу!', err.statusText);
+    });
+    // ------------------------------------------------------------
+  }
+
   setEventForOutingFromNewProductInput() {
     this.addProductInputEl.addEventListener('blur', ({target}) => {
-      console.log('change input');
+      console.log('change blur');
       window.setTimeout(() => {
         this.clearProductButtonsFromWindow();
       }, 100);
@@ -199,25 +322,6 @@ class AddProductInput {
       throw new Error(`Не удалось получить идентификатор списка продуктов пользователя`);
     }
   }
-
-  sendJSON(list_id, product_id) {
-    let xhr = new XMLHttpRequest();
-    let url = "http://localhost:8000/api/v1/add_product/";
-    // открываем соединение
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    // когда придёт ответ на наше обращение к серверу, мы его обработаем здесь
-    xhr.onreadystatechange = function () {
-      // если запрос принят и сервер ответил, что всё в порядке
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        console.log(this.responseText);
-      }
-    };
-    // преобразуем наши данные JSON в строку
-    let data = JSON.stringify({"product_id": product_id, "list_id": list_id});
-    // когда всё готово, отправляем JSON на сервер
-    xhr.send(data);
-  }
 }
 
 class FetchClass {
@@ -232,3 +336,96 @@ class FetchClass {
       });
   }
 }
+
+
+//
+// class ProductList {
+//   /**
+//    * Класс служит для отобрабения списков и продуктов по спискам
+//    * @type {Element}
+//    */
+//   productListsEl = document.querySelector('#productLists');
+//   productsEl = document.querySelector('#products');
+//
+//   init() {
+//     this.getListsWithProducts();
+//   }
+//
+//   getListsWithProducts() {
+//     /**
+//      * Получает объект, содержащий списки и продукты по спискам
+//      */
+//     const lists = new FetchClass().fetchJSONFromURL('http://localhost:8000/api/v1/get_lists_and_products/');
+//
+//     const catchUserLists = async () => {
+//       const listsObj = await lists;
+//
+//       // Отрисуем списки продуктов для пользователя
+//       this.drawProductLists(listsObj);
+//
+//       // Отрисуем продукты в конкретном списке
+//       this.drawProductsForListId(listsObj, Object.keys(listsObj)[0]);
+//
+//       // Добавим функционала при клике на списки пользователя
+//       this.setFunctionalForClickProductsList(listsObj);
+//     };
+//
+//     catchUserLists();
+//   }
+//
+//   redrawProductsForListId(listId) {
+//     /**
+//      * Перерисовывает продукты для списка с идентификатором listId
+//      */
+//
+//   }
+//
+//   drawProductLists(lists) {
+//     let str = ``;
+//     Object.keys(lists).forEach((id) => {
+//       str += `<a href="#" style="text-decoration: none;">
+//                 <li class="list-group-item" data-id="${id}">${lists[id]['name']}</li>
+//               </a>`;
+//     });
+//     // Вставим строки с названиями списков
+//     this.productListsEl.insertAdjacentHTML('beforeend', str);
+//   }
+//
+//   drawProductsForListId(listsObj, list_id) {
+//     this.addActiveClassForList(list_id);
+//     this.clearProductsFromLabels();
+//     let str = ``;
+//     let odj = listsObj[list_id]['products'];
+//     Object.keys(odj).forEach(product_id => {
+//       str += `<label class="list-group-item">
+//                   <input class="form-check-input me-1" type="checkbox" value="">
+//                   ${odj[product_id]}
+//               </label>`;
+//     });
+//     // Вставим строки с названиями продуктов
+//     this.productsEl.insertAdjacentHTML('beforeend', str);
+//   }
+//
+//   setFunctionalForClickProductsList(listsObj) {
+//     this.productListsEl.addEventListener('click', ({target}) => {
+//       if (target.tagName === "LI") {
+//         this.drawProductsForListId(listsObj, target.dataset.id);
+//       }
+//     });
+//   }
+//
+//   clearProductsFromLabels() {
+//     this.productsEl.innerHTML = '';
+//   }
+//
+//   addActiveClassForList(id) {
+//     this.productListsEl.querySelectorAll('li').forEach(el => {
+//       if (el.dataset.id == id) {
+//         el.classList.add('active');
+//       } else {
+//         el.classList.remove('active');
+//       }
+//     });
+//   }
+//
+// }

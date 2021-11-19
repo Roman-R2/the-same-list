@@ -1,0 +1,35 @@
+[
+  {
+    "model": "products_list.productinlist",
+    "pk": 1,
+    "fields": {
+      "name": 2,
+      "list": 2,
+      "quantity": "500 гр.",
+      "created_at": null,
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.productinlist",
+    "pk": 2,
+    "fields": {
+      "name": 4,
+      "list": 2,
+      "quantity": "500 гр.",
+      "created_at": null,
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.productinlist",
+    "pk": 3,
+    "fields": {
+      "name": 1,
+      "list": 2,
+      "quantity": "500 гр.",
+      "created_at": null,
+      "owner": 1
+    }
+  }
+]
