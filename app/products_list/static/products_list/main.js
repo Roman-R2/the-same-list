@@ -5,7 +5,7 @@
 // -----------------------------------------------------------
 class SomeJsonRequests {
   /**
-   * Класс для выполнения запросов к серверу
+   * Класс для выполнения запросов к серверу и возвращения Promise
    * @returns {Promise<unknown>}
    */
 
@@ -42,7 +42,9 @@ class SomeJsonRequests {
 class ProductListV2 {
   /**
    * Версия вторая
-   * Класс служит для отобрабения списков и продуктов по спискам
+   * Класс служит для:
+   *  1. отображения списков и продуктов по спискам
+   *  1. назначения и обработки функционала поля ввода новых продуктов
    * @type {Element}
    */
   productListsEl = document.querySelector('#productLists');
@@ -54,13 +56,16 @@ class ProductListV2 {
   init() {
     // Получим список с сервера
     this.getListsWithProducts();
-    this.focusOnProductInput();
+    // Навесим событие на поле добавления новых продуктов
+    this.AddEventFocusOnProductInput();
   }
 
 
+//----------- Все, что связано со списками и продуктами в них ----------------
+// ---------------------------------------------------------------------------
   getListsWithProducts() {
     /**
-     * Получает обыект списков с продуктами и передает полученный объект listsObj далее на обработку
+     * Получает объект списков с продуктами и передает полученный объект listsObj далее на обработку
      * методу workWithTheReceivedList
      * @type {Promise<any>}
      */
@@ -94,7 +99,7 @@ class ProductListV2 {
     // Отрисуем списки продуктов для пользователя
     this.drawProductLists(this.receivedListObj);
 
-    // Отрисуем продукты в первом списке и добавим выдиление
+    // Отрисуем продукты в первом списке и добавим выделение
     this.drawProductsForListId(Object.keys(this.receivedListObj)[0]);
     this.addActiveClassForList(Object.keys(this.receivedListObj)[0]);
 
@@ -117,13 +122,9 @@ class ProductListV2 {
     /**
      * Добавит продукт в объект списков класса ProductListV2 по переданным аргументам
      */
-    console.log('this.receivedListObj ---> ', this.receivedListObj[listId]['products']);
-    // TODO
-    // this.receivedListObj[listId]['products'] += {
-    //   ...this.receivedListObj[listId]['products'],
-    //   ...{productId: productName}
-    // };
-    console.log('this.receivedListObj ---> ', this.receivedListObj[listId]['products']);
+    console.log(this.receivedListObj[listId]['products'])
+    this.receivedListObj[listId]['products'][productId] = productName;
+    console.log(this.receivedListObj[listId]['products'])
 
   }
 
@@ -199,7 +200,10 @@ class ProductListV2 {
     this.productsEl.innerHTML = '';
   }
 
-  focusOnProductInput() {
+
+  //----------- Все, что связано сполем ввода новых продуктов ------------------
+  // ---------------------------------------------------------------------------
+  AddEventFocusOnProductInput() {
     /**
      * Добавляет событие на выбор поля для ввода нового продукта в список
      */
@@ -207,7 +211,7 @@ class ProductListV2 {
     this.addProductInputEl.addEventListener('focus', ({target}) => {
 
       console.log('addEventListener_focus');
-      // Вернем объект с продуктами,а когда придет информация от сервера то забирем продукты в объект allProducts класса AddProductInput
+      // Вернем объект с продуктами,а когда придет информация от сервера то забирем продукты в объект allProducts
       const products = new FetchClass().fetchJSONFromURL(document.location.origin + '/api/v1/get_products_dict/');
 
       const catchProducts = async () => {
@@ -239,14 +243,13 @@ class ProductListV2 {
 
         this.sendJSONNewProductToServer(this.getListId(), target.dataset.productid);
 
-        // this.sendJSON(this.getListId(), target.dataset.productid);
       }
     })
   }
 
   sendJSONNewProductToServer(listId, productId) {
     /**
-     * Отправляет данные о новом продукте на сервер
+     * Отправляет данные о новом продукте на сервер, для его сохранения
      */
 
     let json = {"product_id": productId, "list_id": listId, "quantity": "500 гр."}
@@ -269,6 +272,9 @@ class ProductListV2 {
   }
 
   setEventForOutingFromNewProductInput() {
+    /**
+     * Уберет все кнопки, показанные при активации поля ввода новых продуктов
+     */
     this.addProductInputEl.addEventListener('blur', ({target}) => {
       console.log('change blur');
       window.setTimeout(() => {
