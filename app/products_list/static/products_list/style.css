@@ -38,3 +38,8 @@
 .wrap :last-child {
     margin-right: 0px; /*Убираем поле последнего div-а*/
 }
+
+.btn-wide{
+    padding-right: 30px;
+    padding-left: 30px;
+}
