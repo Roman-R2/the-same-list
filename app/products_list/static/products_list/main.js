@@ -34,6 +34,17 @@ class SomeJsonRequests {
       xhr.send(data);
     });
   }
+
+  askServerJSONWithPost(url, json) {
+    // ------------ Конструкция асинхронного запроса--------------
+    this.sendJSONRequest(url, json).then((data) => {
+      return JSON.parse(data);
+    }).catch((err) => {
+      console.error('Ошибка запроса к серверу!', err.statusText);
+    });
+    // ------------------------------------------------------------
+  }
+
 }
 
 // -----------------------------------------------------------
@@ -47,7 +58,7 @@ class ProductListV2 {
    *  1. назначения и обработки функционала поля ввода новых продуктов
    * @type {Element}
    */
-  productListsEl = document.querySelector('#productLists');
+  productListEl = document.querySelector('#productLists');
   productsEl = document.querySelector('#products');
   addProductInputEl = document.querySelector('#addProductInput');
   addProductInputButtonEl = document.querySelector('#addProductInputButton');
@@ -84,7 +95,7 @@ class ProductListV2 {
       // Добавим полученный объект в свойство класса
       this.addListObjectToClass(listsObj);
 
-      //Начнем отрисовке на основе полученного объекта
+      //Начнем отрисовки на основе полученного объекта
       this.workWithTheReceivedList(listsObj)
     };
     catchUserLists().then();
@@ -102,15 +113,25 @@ class ProductListV2 {
     console.log(this.receivedListObj);
 
 
-    // Отрисуем списки продуктов для пользователя
+    // Отобразим списки продуктов для пользователя
     this.drawProductLists(this.receivedListObj);
 
-    // Отрисуем продукты в первом списке и добавим выделение
-    this.drawProductsForListId(Object.keys(this.receivedListObj)[0]);
-    this.addActiveClassForList(Object.keys(this.receivedListObj)[0]);
 
-    // Добавим функционала при клике на списки пользователя
-    this.setFunctionalForClickProductsList();
+    if (Object.keys(this.receivedListObj).length !== 0) {
+      // Отобразим продукты в первом списке и добавим выделение
+      this.drawProductsForListId(Object.keys(this.receivedListObj)[0]);
+      this.addActiveClassForList(Object.keys(this.receivedListObj)[0]);
+
+      // Добавим функционала при клике на списки пользователя
+      this.setFunctionalForClickProductsList();
+
+      // Добавим функционала при наведении и уходе на списки пользователя для меню
+      this.setFunctionalForMouseoverProductsList();
+      this.setFunctionalForMouseoutProductsList();
+    } else {
+      console.log('Пока нет ни одного списка...');
+    }
+
 
   }
 
@@ -162,12 +183,33 @@ class ProductListV2 {
   drawProductLists(lists) {
     let str = ``;
     Object.keys(lists).forEach((id) => {
-      str += `<a href="#" style="text-decoration: none;">
-                <li class="list-group-item" data-id="${id}">${lists[id]['name']}</li>
-              </a>`;
+
+      str += `
+                <a class="list-group-item list-group-item-action mb-2" data-id="${id}">
+                    
+                    <small class="menu-area d-none float-end" id="listButtonsMenu" data-id="${id}">
+                          <i class="fas fa-ellipsis-v fas-line p-e-none"></i>
+                    </small>
+                    <div class="d-flex w-75 justify-content-between p-e-none">
+                      <h6 class="mb-1 p-e-none" id="listTitle:${id}">${lists[id]['name']}</h6>
+                      <input type="text" class="form-control p-e-yes d-none list-title-input" value="${lists[id]['name']}" id="renameListArea:${id}" data-id="${id}">
+                    </div>
+                    <span class="float-start d-none" id="listButtonsAction" data-id="${id}">
+                        <i class="fas fa-pencil-alt fa-lg m-2 color-blue p-for-icons" id="listButtonsActionEdit" data-id="${id}"></i>
+                        <i class="far fa-trash-alt fa-lg m-2 color-red p-for-icons" id="listButtonsActionDelete" data-id="${id}"></i>
+                    </span>
+               </a>`;
+
+
+      // str += `<a href="#" style="text-decoration: none;">
+      //           <li class="list-group-item" data-id="${id}">
+      //             ${lists[id]['name']}
+      //             <i class="fas fa-ellipsis-v fas-line float-end"></i>
+      //           </li>
+      //         </a>`;
     });
     // Вставим строки с названиями списков
-    this.productListsEl.insertAdjacentHTML('beforeend', str);
+    this.productListEl.insertAdjacentHTML('beforeend', str);
   }
 
   drawProductsForListId(listId) {
@@ -185,8 +227,8 @@ class ProductListV2 {
   }
 
   addActiveClassForList(listId) {
-    this.productListsEl.querySelectorAll('li').forEach(el => {
-      if (el.dataset.id == listId) {
+    this.productListEl.querySelectorAll('a').forEach(el => {
+      if (el.dataset.id === listId) {
         el.classList.add('active');
       } else {
         el.classList.remove('active');
@@ -194,13 +236,114 @@ class ProductListV2 {
     });
   }
 
+  setFunctionalForMouseoverProductsList() {
+    this.productListEl.addEventListener('mouseover', ({target}) => {
+      if (
+        target.tagName === "A" ||
+        target.id === "listButtonsMenu" ||
+        target.id === "listButtonsAction" ||
+        target.id === "listButtonsActionEdit" ||
+        target.id === "listButtonsActionDelete"
+      ) {
+        let listButtonId = target.dataset.id;
+        let listButtonsMenuEls = document.querySelectorAll('#listButtonsMenu');
+        listButtonsMenuEls.forEach(el => {
+          if (listButtonId === el.dataset.id) {
+            el.classList.remove('d-none');
+          }
+        });
+      }
+    })
+  }
+
+  setFunctionalForMouseoutProductsList() {
+    this.productListEl.addEventListener('mouseout', ({target}) => {
+
+      if (target.tagName === "A") {
+        let listButtonId = target.dataset.id;
+        let listButtonsMenuEls = document.querySelectorAll('#listButtonsMenu');
+        listButtonsMenuEls.forEach(el => {
+          if (listButtonId === el.dataset.id) {
+            el.classList.add('d-none');
+          }
+        });
+      }
+    });
+  }
+
   setFunctionalForClickProductsList() {
-    this.productListsEl.addEventListener('click', ({target}) => {
-      if (target.tagName === "LI") {
+    console.dir(this.productListEl)
+    this.productListEl.addEventListener('click', ({target}) => {
+      console.dir(target)
+      // Если кликаем просто по списку
+      if (target.tagName === "A") {
         this.drawProductsForListId(target.dataset.id);
         this.addActiveClassForList(target.dataset.id);
       }
+
+      // Если кликаем по кнопке меню
+      if (target.id === 'listButtonsMenu') {
+        let targetMenuId = target.dataset.id;
+        let listButtonsActionEls = document.querySelectorAll('#listButtonsAction');
+
+        listButtonsActionEls.forEach(el => {
+          if (targetMenuId === el.dataset.id) {
+            el.classList.toggle('d-none')
+          }
+
+        });
+      }
+
+      // Если кликаем по кнопке действия редактирования
+      if (target.id === 'listButtonsActionEdit') {
+        let targetEditIconId = target.dataset.id;
+        let listTitleEl = document.querySelector("#listTitle\\:" + targetEditIconId);
+        let renameListAreaEl = document.querySelector("#renameListArea\\:" + targetEditIconId);
+        console.dir(listTitleEl)
+        console.dir(renameListAreaEl)
+
+        let titleText = listTitleEl.innerText
+        listTitleEl.classList.toggle('d-none');
+        renameListAreaEl.classList.toggle('d-none');
+        renameListAreaEl.focus();
+        renameListAreaEl.select();
+        renameListAreaEl.defaultValue = titleText;
+        // this.setFunctionalEnterInRenameListField();
+
+        renameListAreaEl.addEventListener('keypress', (event) => {
+
+          if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+            console.log(event.code);
+            // TODO отправить на сервер новое имя списка
+            console.log(renameListAreaEl.dataset.id);
+            console.dir(renameListAreaEl);
+
+            // ------------ Конструкция асинхронного запроса--------------
+            new SomeJsonRequests().sendJSONRequest(
+              document.location.origin + "/api/v1/set_list_new_name/",
+              {"listId": renameListAreaEl.dataset.id, "listNewName": renameListAreaEl.value}
+            ).then((data) => {
+              let list = JSON.parse(data);
+              console.log('-------------> ', list.status)
+              listTitleEl.innerText = renameListAreaEl.value;
+              listTitleEl.classList.toggle('d-none');
+              renameListAreaEl.classList.toggle('d-none');
+
+            }).catch((err) => {
+              console.error('Ошибка запроса к серверу!', err.statusText);
+            });
+            // ------------------------------------------------------------
+          }
+        });
+      }
+
+      // Если кликаем по кнопке действия удаления
+
     });
+  }
+
+  setFunctionalEnterInRenameListField() {
+
   }
 
   clearProductsFromLabels() {
@@ -469,7 +612,7 @@ class ProductListV2 {
      * @type {number}
      */
     let list_id = 0;
-    let productListsEl = document.querySelectorAll('#productLists li');
+    let productListsEl = document.querySelectorAll('#productLists a');
     productListsEl.forEach(el => {
       if (el.classList.contains('active')) {
         list_id = el.dataset.id;

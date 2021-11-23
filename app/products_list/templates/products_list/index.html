@@ -3,60 +3,79 @@
 
 {% block content %}
 
-<script>
-  'use strict';
-  // let lists = JSON.parse('{{ data|safe }}');
+    <script>
+      'use strict';
+      // let lists = JSON.parse('{{ data|safe }}');
 
 
-  window.addEventListener('load', (event) => {
+      window.addEventListener('load', (event) => {
 
-    // if (Object.keys(lists).length === 0 && lists.constructor === Object) {
-    //   let mainRowEl = document.querySelector('#mainRow');
-    //   mainRowEl.innerHTML =
-    //     "<h4>У вас пока не добавлено ни одного списка. <a href='#'>Добавить.</a></h4>";
-    //
-    // } else {
-    // let productList = new ProductList();
-    // productList.init();
+        // if (Object.keys(lists).length === 0 && lists.constructor === Object) {
+        //   let mainRowEl = document.querySelector('#mainRow');
+        //   mainRowEl.innerHTML =
+        //     "<h4>У вас пока не добавлено ни одного списка. <a href='#'>Добавить.</a></h4>";
+        //
+        // } else {
+        // let productList = new ProductList();
+        // productList.init();
 
-    let productListV2 = new ProductListV2();
-    productListV2.init();
+        let productListV2 = new ProductListV2();
+        productListV2.init();
 
-  });
-</script>
+      });
+    </script>
 
-<div class="bg-light p-2 rounded">
-    <div class="row" id="mainRow">
+    <div class="bg-light p-2 rounded">
+        <div class="row" id="mainRow">
 
-        <div class="col-sm-4 mx-auto">
-            <h5>Списки:</h5>
-            <ul class="list-group list-group-flush" id="productLists">
-                <!--                <a href="#" style="text-decoration: none;">-->
-                <!--                    <li class="list-group-item">Test</li>-->
-                <!--                </a>-->
-            </ul>
-        </div>
-        <div class="col-sm-8 mx-auto">
-            <h5>Продукты:</h5>
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" placeholder="Добавьте новый товар в список..."
-                       aria-label="Новый товар" aria-describedby="basic-addon2" id="addProductInput">
-                <button class="btn btn-outline-secondary disabled btn-wide" type="button"
-                        id="addProductInputButton">
-                    <i class="fas fa-plus"></i>
-                </button>
+            <div class="col-sm-4 mx-auto">
+                {#                <h5>Списки:</h5>#}
+
+                <div class="d-grid gap-2 mb-2">
+                    <button class="btn btn-outline-info" type="button">
+                        <i class="fas fa-plus"></i>
+                        Добавить новый список
+                    </button>
+                </div>
+
+                <ul class="list-group" id="productLists">
+{#                    <a href="#" class="list-group-item list-group-item-action"#}
+{#                       aria-current="true">#}
+{#                        <div class="d-flex w-100 justify-content-between">#}
+{#                            <h6 class="mb-1">Мой список покупок</h6>#}
+{#                            <small>#}
+{#                                <i class="fas fa-ellipsis-v fas-line"></i>#}
+{#                            </small>#}
+{#                        </div>#}
+{#                        <div class="float-start">#}
+{#                            <i class="fas fa-pencil-alt m-2 color-blue"></i>#}
+{#                            <i class="far fa-trash-alt m-2 color-red"></i>#}
+{#                        </div>#}
+{#                    </a>#}
+                </ul>
             </div>
-            <div id="productChoice" class="wrap">
-            </div>
-            <div class="list-group" id="products">
-                <!--                <label class="list-group-item">-->
-                <!--                    <input class="form-check-input me-1" type="checkbox" value="">-->
-                <!--                    First checkbox-->
-                <!--                </label>-->
+            <div class="col-sm-8 mx-auto">
+                {#                <h5>Продукты:</h5>#}
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control"
+                           placeholder="Добавьте новый товар в список..."
+                           aria-label="Новый товар" aria-describedby="basic-addon2" id="addProductInput">
+                    <button class="btn btn-outline-secondary disabled btn-wide" type="button"
+                            id="addProductInputButton">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div id="productChoice" class="wrap">
+                </div>
+                <div class="list-group" id="products">
+                    <!--                <label class="list-group-item">-->
+                    <!--                    <input class="form-check-input me-1" type="checkbox" value="">-->
+                    <!--                    First checkbox-->
+                    <!--                </label>-->
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
 {% endblock content %}

@@ -145,3 +145,19 @@ def get_product_id_for_name(request):
 
         return JsonResponse({"status": "success", "productId": requested_product.pk})
     return JsonResponse({"status": "error"})
+
+
+@csrf_exempt
+def set_list_new_name(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        unpack_json = json.loads(request.body)
+        list_id = unpack_json['listId']
+        list_new_name = unpack_json['listNewName']
+
+        list_for_rename = List.objects.get(pk=list_id)
+        list_for_rename.title = list_new_name
+        list_for_rename.save()
+
+        print('----------->', list_id, list_new_name)
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"})

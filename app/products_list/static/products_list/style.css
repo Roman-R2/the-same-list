@@ -39,7 +39,39 @@
     margin-right: 0px; /*Убираем поле последнего div-а*/
 }
 
-.btn-wide{
+.btn-wide {
     padding-right: 30px;
     padding-left: 30px;
+}
+
+.fas-line {
+    line-height: unset;
+}
+
+.color-red {
+    color: #ff253a;
+}
+
+.color-blue {
+    color: dodgerblue;
+}
+
+.menu-area {
+    padding: 0 10px;
+}
+
+.p-e-none {
+    pointer-events: none;
+}
+
+.p-e-yes {
+    pointer-events: visible;
+}
+
+.p-for-icons {
+    padding: 15px 10px;
+}
+
+.list-title-input {
+    padding: 0 0;
 }
