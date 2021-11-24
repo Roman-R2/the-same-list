@@ -161,3 +161,37 @@ def set_list_new_name(request):
         print('----------->', list_id, list_new_name)
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"})
+
+
+@csrf_exempt
+def add_new_list(request):
+    """
+    Добавляет новый список с именем в базу данных по запросу {"comment": "giveMeNewList"}
+    :param request:
+    :return:
+    """
+    if request.method == 'POST' and request.user.is_authenticated:
+        unpack_json = json.loads(request.body)
+        comment = unpack_json['comment']
+        if comment == "giveMeNewList":
+            new_list = List.objects.create(title="Новый список", owner=request.user)
+            return JsonResponse({
+                "status": "success",
+                "listId": new_list.pk,
+                "listTitle": new_list.title})
+    return JsonResponse({"status": "error"})
+
+
+@csrf_exempt
+def get_list_for_id(request):
+    """
+    Получает и передает список по определенному id
+    :param request:
+    :return:
+    """
+    print('---------> get_list_for_id')
+    if request.method == 'GET' and request.user.is_authenticated:
+        print('---------> get_list_for_id GET!!!!!!!!!')
+
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"})

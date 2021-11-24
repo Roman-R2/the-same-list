@@ -35,14 +35,30 @@ class SomeJsonRequests {
     });
   }
 
-  askServerJSONWithPost(url, json) {
-    // ------------ Конструкция асинхронного запроса--------------
-    this.sendJSONRequest(url, json).then((data) => {
-      return JSON.parse(data);
-    }).catch((err) => {
-      console.error('Ошибка запроса к серверу!', err.statusText);
+  sendGetJSONRequest(url, json) {
+    return new Promise(function (resolve, reject) {
+      let xhr = new XMLHttpRequest();
+      xhr.open("GET", url);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onload = function () {
+        if (this.status >= 200 && this.status < 300) {
+          resolve(xhr.response);
+        } else {
+          reject({
+            status: this.status,
+            statusText: xhr.statusText
+          });
+        }
+      };
+      xhr.onerror = function () {
+        reject({
+          status: this.status,
+          statusText: xhr.statusText
+        });
+      };
+      let data = JSON.stringify(json);
+      xhr.send(data);
     });
-    // ------------------------------------------------------------
   }
 
 }
@@ -56,8 +72,10 @@ class ProductListV2 {
    * Класс служит для:
    *  1. отображения списков и продуктов по спискам
    *  1. назначения и обработки функционала поля ввода новых продуктов
-   * @type {Element}
+   * @type {SomeJsonRequests}
    */
+
+  addNewListButtonEl = document.querySelector('#addNewListButton');
   productListEl = document.querySelector('#productLists');
   productsEl = document.querySelector('#products');
   addProductInputEl = document.querySelector('#addProductInput');
@@ -105,6 +123,14 @@ class ProductListV2 {
     this.receivedListObj = receivedListObj;
   }
 
+  async someAsyncGetResp(url, json) {
+    return await new SomeJsonRequests().sendGetJSONRequest(url, json);
+  }
+
+  async someAsyncPostResp(url, json) {
+    return await new SomeJsonRequests().sendJSONRequest(url, json);
+  }
+
   workWithTheReceivedList() {
     /**
      * Производит с полученным объектом действия добавления событий и отрисовки
@@ -113,11 +139,20 @@ class ProductListV2 {
     console.log(this.receivedListObj);
 
 
-    // Отобразим списки продуктов для пользователя
-    this.drawProductLists(this.receivedListObj);
+    // this.someAsyncGetResp(
+    //   document.location.origin + "/api/v1/get_list_for_id/",
+    //   {"listId": 1}
+    // ).then(response => {
+    //   console.log(r)
+    // });
 
+
+    this.setFunctionalForClickCreateNewList();
 
     if (Object.keys(this.receivedListObj).length !== 0) {
+      // Отобразим списки продуктов для пользователя
+      this.drawProductLists(this.receivedListObj);
+
       // Отобразим продукты в первом списке и добавим выделение
       this.drawProductsForListId(Object.keys(this.receivedListObj)[0]);
       this.addActiveClassForList(Object.keys(this.receivedListObj)[0]);
@@ -131,8 +166,42 @@ class ProductListV2 {
     } else {
       console.log('Пока нет ни одного списка...');
     }
+  }
 
 
+  setFunctionalForClickCreateNewList() {
+    /**
+     * Добавляет обработчик события по нажатию на кнопку добавления нового списка
+     */
+    this.addNewListButtonEl.addEventListener('click', ({target}) => {
+      console.log('click setFunctionalForClickCreateNewList');
+
+      // ------------ Конструкция асинхронного запроса GET ----------
+      this.someAsyncPostResp(
+        document.location.origin + "/api/v1/add_new_list/",
+        {"comment": "giveMeNewList"}
+      ).then(response => {
+        response = JSON.parse(response)
+        if (response.status === 'success') {
+          // Добавим в объект и отобразим новый список
+          this.receivedListObj[response.listId] = {
+            'name': response.listTitle,
+            'products': {},
+          };
+          // Отобразим списки занова
+          this.drawProductLists(this.receivedListObj)
+          // Отобразим продукты в первом списке и добавим выделение
+          this.drawProductsForListId(response.listId);
+          this.addActiveClassForList(response.listId);
+        } else {
+          console.log(`Пришел ответ со статусом ${response.status}`)
+        }
+      }).catch((err) => {
+        console.error('Ошибка запроса к серверу!', err.statusText);
+      });
+      // ------------------------------------------------------------
+
+    });
   }
 
   drawOneProductToEndListAndAddToObject(listId, productId, productName) {
@@ -179,8 +248,15 @@ class ProductListV2 {
 
   }
 
+  clearProductLists() {
+    /**
+     * Уберет все списки с экрана
+     */
+    this.productListEl.innerHTML = "";
+  }
 
   drawProductLists(lists) {
+    this.clearProductLists();
     let str = ``;
     Object.keys(lists).forEach((id) => {
 
@@ -227,6 +303,7 @@ class ProductListV2 {
   }
 
   addActiveClassForList(listId) {
+    listId = listId.toString();
     this.productListEl.querySelectorAll('a').forEach(el => {
       if (el.dataset.id === listId) {
         el.classList.add('active');
@@ -272,7 +349,6 @@ class ProductListV2 {
   }
 
   setFunctionalForClickProductsList() {
-    console.dir(this.productListEl)
     this.productListEl.addEventListener('click', ({target}) => {
       console.dir(target)
       // Если кликаем просто по списку
@@ -314,7 +390,6 @@ class ProductListV2 {
 
           if (event.code === 'Enter' || event.code === 'NumpadEnter') {
             console.log(event.code);
-            // TODO отправить на сервер новое имя списка
             console.log(renameListAreaEl.dataset.id);
             console.dir(renameListAreaEl);
 
