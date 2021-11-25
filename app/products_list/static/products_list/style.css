@@ -25,7 +25,7 @@
     float: left; /*Задаем обтекание*/
     line-height: 40px; /*Высота строки +  верт. центрирования текста*/
     font-size: 18px;
-    background-color: #fff;
+    background-color: #e0feff;
     margin-right: 10px;
     margin-bottom: 10px;
     text-align: center; /*Центрируем текст по горизонтали*/
@@ -74,4 +74,14 @@
 
 .list-title-input {
     padding: 0 0;
+}
+
+.shadow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, .7);
+    z-index: 200;
 }

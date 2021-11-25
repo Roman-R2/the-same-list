@@ -160,7 +160,6 @@ class ProductListV2 {
      * Добавляет обработчик события по нажатию на кнопку добавления нового списка
      */
     this.addNewListButtonEl.addEventListener('click', () => {
-      console.log('click setFunctionalForClickCreateNewList');
 
       // ------------ Конструкция асинхронного запроса ----------
       this.someAsyncPostResp(
@@ -256,14 +255,6 @@ class ProductListV2 {
                         <i class="far fa-trash-alt fa-lg m-2 color-red p-for-icons" id="listButtonsActionDelete" data-id="${id}"></i>
                     </span>
                </a>`;
-
-
-      // str += `<a href="#" style="text-decoration: none;">
-      //           <li class="list-group-item" data-id="${id}">
-      //             ${lists[id]['name']}
-      //             <i class="fas fa-ellipsis-v fas-line float-end"></i>
-      //           </li>
-      //         </a>`;
     });
     // Вставим строки с названиями списков
     this.productListEl.insertAdjacentHTML('beforeend', str);
@@ -450,7 +441,11 @@ class ProductListV2 {
     // Событие на фокусировку поля
     this.addProductInputEl.addEventListener('focus', ({target}) => {
 
-      console.log('addEventListener_focus');
+      // console.log('addEventListener_focus');
+
+      //Добавим тень на заднем фоне
+      this.setBackgroundShadow(true);
+
       // Вернем объект с продуктами,а когда придет информация от сервера,
       // то заберем продукты в объект allProducts вида {productId: productName}
 
@@ -462,7 +457,6 @@ class ProductListV2 {
         response = JSON.parse(response)
         if (response.status === 'success') {
           this.receivedProductsDictObj = response.productsDict;
-          console.log(this.receivedProductsDictObj)
         } else {
           this.errorToConsole(response);
         }
@@ -495,7 +489,7 @@ class ProductListV2 {
       this.clearProductButtonsFromWindow();
 
       // Если есть хоть один символ в поле нового продукта
-      if (target.value.length > 1) {
+      if (target.value.length > 0) {
         // Найдем подстроку в названиях продуктов в объекте словаря типовых продуктов и вернем только
         // те свойства, в которых встречается переданная подстрока
         const filteredObj = this.getDictOfProductsForSubstring(target.value);
@@ -527,6 +521,9 @@ class ProductListV2 {
 
           //Деактивируем кнопку для новых продуктов
           this.setModButtonForAddNewProduct('disable');
+
+          //Уберем тень на заднем фоне
+          this.setBackgroundShadow(false);
         }
       }
     });
@@ -551,6 +548,9 @@ class ProductListV2 {
 
         //Деактивируем кнопку для новых продуктов
         this.setModButtonForAddNewProduct('disable');
+
+        //Уберем тень на заднем фоне
+        this.setBackgroundShadow(false);
       }
 
 
@@ -587,11 +587,13 @@ class ProductListV2 {
       // Очистим кнопки новых продуктов
       this.clearProductButtonsFromWindow();
       if (target.tagName === "A") {
-        console.log('click');
 
         this.sendJSONNewProductToServer(this.getListId(), target.dataset.productid, null);
 
         this.setModButtonForAddNewProduct('disable');
+
+        //Уберем тень на заднем фоне
+        this.setBackgroundShadow(false);
       }
     })
   }
@@ -610,7 +612,6 @@ class ProductListV2 {
       ).then(response => {
         response = JSON.parse(response)
         if (response.status === 'success') {
-          console.log('-------------> ', response.status)
           // Дорисуем новый продукт в конец списка
           this.drawOneProductToEndListAndAddToObject(listId, response.newProductId, response.newProductName);
         } else {
@@ -629,7 +630,6 @@ class ProductListV2 {
       ).then(response => {
         response = JSON.parse(response)
         if (response.status === 'success') {
-          console.log('-------------> ', response.status)
           // Дорисуем новый продукт в конец списка
           this.drawOneProductToEndListAndAddToObject(
             listId,
@@ -650,9 +650,10 @@ class ProductListV2 {
      * Уберет все кнопки, показанные при активации поля ввода новых продуктов
      */
     this.addProductInputEl.addEventListener('blur', ({target}) => {
-      console.log('change blur');
       window.setTimeout(() => {
         this.clearProductButtonsFromWindow();
+        //Уберем тень на заднем фоне
+        this.setBackgroundShadow(false);
       }, 100);
     });
   }
@@ -708,8 +709,12 @@ class ProductListV2 {
     }
   }
 
-  blurArea() {
-    console.log('реализовать')
+  setBackgroundShadow(setMod = false) {
+    if (setMod === true) {
+      document.querySelector('#backgroundShadow').classList.add('shadow');
+    } else {
+      document.querySelector('#backgroundShadow').classList.remove('shadow');
+    }
   }
 
   getListId() {
