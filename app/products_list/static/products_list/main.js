@@ -9,10 +9,10 @@ class SomeJsonRequests {
    * @returns {Promise<unknown>}
    */
 
-  sendJSONRequest(url, json) {
+  sendJSONRequest(url, json, method) {
     return new Promise(function (resolve, reject) {
       let xhr = new XMLHttpRequest();
-      xhr.open("POST", url);
+      xhr.open(method, url);
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.onload = function () {
         if (this.status >= 200 && this.status < 300) {
@@ -35,30 +35,16 @@ class SomeJsonRequests {
     });
   }
 
-  sendGetJSONRequest(url, json) {
-    return new Promise(function (resolve, reject) {
-      let xhr = new XMLHttpRequest();
-      xhr.open("GET", url);
-      xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.onload = function () {
-        if (this.status >= 200 && this.status < 300) {
-          resolve(xhr.response);
-        } else {
-          reject({
-            status: this.status,
-            statusText: xhr.statusText
-          });
-        }
-      };
-      xhr.onerror = function () {
-        reject({
-          status: this.status,
-          statusText: xhr.statusText
-        });
-      };
-      let data = JSON.stringify(json);
-      xhr.send(data);
-    });
+  sendPostJSONRequest(url, json, method = "POST") {
+    return this.sendJSONRequest(url, json, method);
+  }
+
+  sendGetJSONRequest(url, json, method = "GET") {
+    return this.sendJSONRequest(url, json, method);
+  }
+
+  sendDeleteJSONRequest(url, json, method = "DELETE") {
+    return this.sendJSONRequest(url, json, method);
   }
 
 }
@@ -95,6 +81,17 @@ class ProductListV2 {
     this.AddEventFocusOnProductInput();
   }
 
+  async someAsyncGetResp(url, json) {
+    return await new SomeJsonRequests().sendGetJSONRequest(url, json);
+  }
+
+  async someAsyncPostResp(url, json) {
+    return await new SomeJsonRequests().sendPostJSONRequest(url, json);
+  }
+
+  async someAsyncDeleteResp(url, json) {
+    return await new SomeJsonRequests().sendDeleteJSONRequest(url, json);
+  }
 
 //----------- Все, что связано со списками и продуктами в них ----------------
 // ---------------------------------------------------------------------------
@@ -104,48 +101,38 @@ class ProductListV2 {
      * методу workWithTheReceivedList
      * @type {Promise<any>}
      */
-    const lists = new FetchClass()
-      .fetchJSONFromURL('http://localhost:8000/api/v1/get_lists_and_products/');
 
-    const catchUserLists = async () => {
-      const listsObj = await lists;
 
-      // Добавим полученный объект в свойство класса
-      this.addListObjectToClass(listsObj);
+    // ------------ Конструкция асинхронного запроса ----------
+    this.someAsyncGetResp(
+      document.location.origin + "/api/v1/get_lists_and_products/",
+      {}
+    ).then(response => {
+      response = JSON.parse(response)
+      if (response.status === 'success') {
 
-      //Начнем отрисовки на основе полученного объекта
-      this.workWithTheReceivedList(listsObj)
-    };
-    catchUserLists().then();
+        // Добавим полученный объект в свойство класса
+        this.addListObjectToClass(response.listsAndProducts);
+
+        //Начнем отрисовки на основе полученного объекта
+        this.workWithTheReceivedList(response.listsAndProducts)
+
+      } else {
+        this.errorToConsole(response);
+      }
+    });
+    // ------------------------------------------------------------
   }
 
   addListObjectToClass(receivedListObj) {
     this.receivedListObj = receivedListObj;
   }
 
-  async someAsyncGetResp(url, json) {
-    return await new SomeJsonRequests().sendGetJSONRequest(url, json);
-  }
-
-  async someAsyncPostResp(url, json) {
-    return await new SomeJsonRequests().sendJSONRequest(url, json);
-  }
 
   workWithTheReceivedList() {
     /**
      * Производит с полученным объектом действия добавления событий и отрисовки
      */
-
-    console.log(this.receivedListObj);
-
-
-    // this.someAsyncGetResp(
-    //   document.location.origin + "/api/v1/get_list_for_id/",
-    //   {"listId": 1}
-    // ).then(response => {
-    //   console.log(r)
-    // });
-
 
     this.setFunctionalForClickCreateNewList();
 
@@ -154,8 +141,7 @@ class ProductListV2 {
       this.drawProductLists(this.receivedListObj);
 
       // Отобразим продукты в первом списке и добавим выделение
-      this.drawProductsForListId(Object.keys(this.receivedListObj)[0]);
-      this.addActiveClassForList(Object.keys(this.receivedListObj)[0]);
+      this.drawListProductsAndSetActiveClassForListId(Object.keys(this.receivedListObj)[0])
 
       // Добавим функционала при клике на списки пользователя
       this.setFunctionalForClickProductsList();
@@ -173,10 +159,10 @@ class ProductListV2 {
     /**
      * Добавляет обработчик события по нажатию на кнопку добавления нового списка
      */
-    this.addNewListButtonEl.addEventListener('click', ({target}) => {
+    this.addNewListButtonEl.addEventListener('click', () => {
       console.log('click setFunctionalForClickCreateNewList');
 
-      // ------------ Конструкция асинхронного запроса GET ----------
+      // ------------ Конструкция асинхронного запроса ----------
       this.someAsyncPostResp(
         document.location.origin + "/api/v1/add_new_list/",
         {"comment": "giveMeNewList"}
@@ -191,13 +177,11 @@ class ProductListV2 {
           // Отобразим списки занова
           this.drawProductLists(this.receivedListObj)
           // Отобразим продукты в первом списке и добавим выделение
-          this.drawProductsForListId(response.listId);
-          this.addActiveClassForList(response.listId);
+          this.drawListProductsAndSetActiveClassForListId(response.listId);
+
         } else {
-          console.log(`Пришел ответ со статусом ${response.status}`)
+          this.errorToConsole(response)
         }
-      }).catch((err) => {
-        console.error('Ошибка запроса к серверу!', err.statusText);
       });
       // ------------------------------------------------------------
 
@@ -218,10 +202,7 @@ class ProductListV2 {
     /**
      * Добавит продукт в объект списков класса ProductListV2 по переданным аргументам
      */
-    console.log(this.receivedListObj[listId]['products'])
     this.receivedListObj[listId]['products'][productId] = productName;
-    console.log(this.receivedListObj[listId]['products'])
-
   }
 
   askForProductAndDrawInList(listId, productDictId, newProductId) {
@@ -288,6 +269,15 @@ class ProductListV2 {
     this.productListEl.insertAdjacentHTML('beforeend', str);
   }
 
+  drawListProductsAndSetActiveClassForListId(listId) {
+    /**
+     * Отобразит продукты в первом списке и добавит выделение для первого списка
+     */
+    this.drawProductsForListId(listId);
+    this.addActiveClassForList(listId);
+  }
+
+
   drawProductsForListId(listId) {
     this.clearProductsFromLabels();
     let str = ``;
@@ -350,7 +340,6 @@ class ProductListV2 {
 
   setFunctionalForClickProductsList() {
     this.productListEl.addEventListener('click', ({target}) => {
-      console.dir(target)
       // Если кликаем просто по списку
       if (target.tagName === "A") {
         this.drawProductsForListId(target.dataset.id);
@@ -375,50 +364,76 @@ class ProductListV2 {
         let targetEditIconId = target.dataset.id;
         let listTitleEl = document.querySelector("#listTitle\\:" + targetEditIconId);
         let renameListAreaEl = document.querySelector("#renameListArea\\:" + targetEditIconId);
-        console.dir(listTitleEl)
-        console.dir(renameListAreaEl)
-
         let titleText = listTitleEl.innerText
+
         listTitleEl.classList.toggle('d-none');
         renameListAreaEl.classList.toggle('d-none');
         renameListAreaEl.focus();
         renameListAreaEl.select();
         renameListAreaEl.defaultValue = titleText;
-        // this.setFunctionalEnterInRenameListField();
 
-        renameListAreaEl.addEventListener('keypress', (event) => {
+        this.setFunctionalEnterInRenameListField(renameListAreaEl, listTitleEl);
 
-          if (event.code === 'Enter' || event.code === 'NumpadEnter') {
-            console.log(event.code);
-            console.log(renameListAreaEl.dataset.id);
-            console.dir(renameListAreaEl);
-
-            // ------------ Конструкция асинхронного запроса--------------
-            new SomeJsonRequests().sendJSONRequest(
-              document.location.origin + "/api/v1/set_list_new_name/",
-              {"listId": renameListAreaEl.dataset.id, "listNewName": renameListAreaEl.value}
-            ).then((data) => {
-              let list = JSON.parse(data);
-              console.log('-------------> ', list.status)
-              listTitleEl.innerText = renameListAreaEl.value;
-              listTitleEl.classList.toggle('d-none');
-              renameListAreaEl.classList.toggle('d-none');
-
-            }).catch((err) => {
-              console.error('Ошибка запроса к серверу!', err.statusText);
-            });
-            // ------------------------------------------------------------
-          }
-        });
       }
 
       // Если кликаем по кнопке действия удаления
+      if (target.id === 'listButtonsActionDelete') {
+        let targetDeleteIconId = target.dataset.id;
+
+        // ------------ Конструкция асинхронного запроса ----------
+        this.someAsyncDeleteResp(
+          document.location.origin + "/api/v1/delete_list_for_id/",
+          {"listId": targetDeleteIconId}
+        ).then(response => {
+          response = JSON.parse(response)
+          if (response.status === 'success') {
+            // Удалим в объект и уберем удаленный список
+            delete this.receivedListObj[response.deletedListId]
+
+            // Отобразим списки заново
+            this.drawProductLists(this.receivedListObj)
+            // Отобразим продукты в первом списке и добавим выделение
+            this.drawListProductsAndSetActiveClassForListId(Object.keys(this.receivedListObj)[0]);
+          } else {
+            this.errorToConsole(response);
+          }
+        });
+        // ------------------------------------------------------------
+      }
 
     });
   }
 
-  setFunctionalEnterInRenameListField() {
+  setFunctionalEnterInRenameListField(renameListAreaEl, listTitleEl) {
+    /**
+     * Добавляет обработчик события по нажатию enter в поле редактирования имя списка
+     */
+    renameListAreaEl.addEventListener('keypress', (event) => {
 
+      if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+
+        // ------------ Конструкция асинхронного запроса ----------
+        this.someAsyncPostResp(
+          document.location.origin + "/api/v1/set_list_new_name/",
+          {"listId": renameListAreaEl.dataset.id, "listNewName": renameListAreaEl.value}
+        ).then(response => {
+          response = JSON.parse(response)
+          if (response.status === 'success') {
+            listTitleEl.innerText = renameListAreaEl.value;
+            listTitleEl.classList.remove('d-none');
+            renameListAreaEl.classList.add('d-none');
+          } else {
+            this.errorToConsole(response);
+          }
+        });
+        // ------------------------------------------------------------
+      }
+    });
+  }
+
+
+  errorToConsole(response) {
+    console.log(`Пришел ответ со статусом ${response.status}, status.code ${response.code}`)
   }
 
   clearProductsFromLabels() {
@@ -438,18 +453,21 @@ class ProductListV2 {
       console.log('addEventListener_focus');
       // Вернем объект с продуктами,а когда придет информация от сервера,
       // то заберем продукты в объект allProducts вида {productId: productName}
-      const products = new FetchClass().fetchJSONFromURL(
-        document.location.origin + '/api/v1/get_products_dict/'
-      );
 
-      const catchProducts = async () => {
-        const productsObj = await products;
-
-        this.receivedProductsDictObj = productsObj;
-        console.log(this.receivedProductsDictObj)
-      };
-
-      catchProducts();
+      // ------------ Конструкция асинхронного запроса ----------
+      this.someAsyncGetResp(
+        document.location.origin + "/api/v1/get_products_dict/",
+        {}
+      ).then(response => {
+        response = JSON.parse(response)
+        if (response.status === 'success') {
+          this.receivedProductsDictObj = response.productsDict;
+          console.log(this.receivedProductsDictObj)
+        } else {
+          this.errorToConsole(response);
+        }
+      });
+      // ------------------------------------------------------------
 
     });
 
@@ -458,6 +476,9 @@ class ProductListV2 {
 
     //Событие по изменению ввода в поле новых продуктов
     this.setEventForInputNewProductField();
+
+    //Событие по нажатию enter внутри поля ввода новых продуктов
+    this.setEventForPressEnterForInputNewProductField();
 
     // Добавим обработчик события при клике на кнопку добавления нового продукта
     this.setEventForClickNewProductButton();
@@ -474,7 +495,7 @@ class ProductListV2 {
       this.clearProductButtonsFromWindow();
 
       // Если есть хоть один символ в поле нового продукта
-      if (target.value.length > 0) {
+      if (target.value.length > 1) {
         // Найдем подстроку в названиях продуктов в объекте словаря типовых продуктов и вернем только
         // те свойства, в которых встречается переданная подстрока
         const filteredObj = this.getDictOfProductsForSubstring(target.value);
@@ -489,16 +510,35 @@ class ProductListV2 {
     });
   }
 
+  setEventForPressEnterForInputNewProductField() {
+    /**
+     * Добавляет событие по нажатию enter внутри поля ввода новых продуктов
+     */
+    this.addProductInputEl.addEventListener('keypress', (event) => {
+      if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+        if (this.addProductInputEl.value.length > 1) {
+          this.sendJSONNewProductToServer(this.getListId(), null, this.addProductInputEl.value);
+
+          //Очистим поле ввода нового продукта
+          this.clearNewProductInputValue();
+
+          // Очистим кнопки новых продуктов
+          this.clearProductButtonsFromWindow();
+
+          //Деактивируем кнопку для новых продуктов
+          this.setModButtonForAddNewProduct('disable');
+        }
+      }
+    });
+  }
+
   setEventForClickNewProductButton() {
     /**
      * Добавляет обработчик события при клике на кнопку добавления нового продукта
      */
     this.addProductInputButtonEl.addEventListener('click', ({target}) => {
 
-      console.log('setEventForClickNewProductButton --- click out');
-      console.dir(target)
       if (target.tagName === "BUTTON") {
-        console.log('setEventForClickNewProductButton --- click');
 
         //
         this.sendJSONNewProductToServer(this.getListId(), null, this.addProductInputEl.value);
@@ -517,17 +557,11 @@ class ProductListV2 {
     })
   }
 
-  removeEventForClickNewProductButton() {
-    this.addProductInputButtonEl.removeEventListener('click', () => {
-    });
-  }
-
   getDictOfProductsForSubstring(substring) {
     /**
      * Найдет подстроку в названиях продуктов в объекте словаря типовых продуктов и вернем только те
      * свойства, в которых встречается переданная подстрока
      */
-    // this.renderAdditionProductButtons(this.receivedProductsDictObj);
     return Object.fromEntries(
       Object.entries(this.receivedProductsDictObj)
         .filter(
@@ -567,46 +601,43 @@ class ProductListV2 {
      * Отправляет данные о новом продукте на сервер, для его сохранения
      */
 
-    let json = null;
-    let url = null;
-
     if (productName == null) {
-      json = {"listId": listId, "productId": productId, "quantity": "500 гр."}
-      url = document.location.origin + "/api/v1/add_product_for_id/"
 
-      // ------------ Конструкция асинхронного запроса--------------
-      new SomeJsonRequests().sendJSONRequest(url, json)
-        .then((data) => {
-            let product = JSON.parse(data);
-            console.log('-------------> ', product.status)
-            // Дорисуем новый продукт в конец списка
-            this.askForProductAndDrawInList(listId, productId, product.newProductId);
-
-          }
-        ).catch((err) => {
-        console.error('Ошибка запроса к серверу!', err.statusText);
+      // ------------ Конструкция асинхронного запроса ----------
+      this.someAsyncPostResp(
+        document.location.origin + "/api/v1/add_product_for_id/",
+        {"listId": listId, "productId": productId, "quantity": "500 гр."}
+      ).then(response => {
+        response = JSON.parse(response)
+        if (response.status === 'success') {
+          console.log('-------------> ', response.status)
+          // Дорисуем новый продукт в конец списка
+          this.drawOneProductToEndListAndAddToObject(listId, response.newProductId, response.newProductName);
+        } else {
+          this.errorToConsole(response);
+        }
       });
       // ------------------------------------------------------------
     }
 
     if (productId == null) {
-      json = {"listId": listId, "productName": productName, "quantity": "500 гр."}
-      url = document.location.origin + "/api/v1/add_product_for_name/"
 
-      // ------------ Конструкция асинхронного запроса--------------
-      new SomeJsonRequests().sendJSONRequest(url, json)
-        .then((data) => {
-            let product = JSON.parse(data);
-            console.log('-------------> ', product.status)
-            // Дорисуем новый продукт в конец списка
-            this.drawOneProductToEndListAndAddToObject(
-              this.getListId(),
-              product.newProductId,
-              product.newProductName
-            );
-          }
-        ).catch((err) => {
-        console.error('Ошибка запроса к серверу!', err.statusText);
+      // ------------ Конструкция асинхронного запроса ----------
+      this.someAsyncPostResp(
+        document.location.origin + "/api/v1/add_product_for_name/",
+        {"listId": listId, "productName": productName, "quantity": "500 гр."}
+      ).then(response => {
+        response = JSON.parse(response)
+        if (response.status === 'success') {
+          console.log('-------------> ', response.status)
+          // Дорисуем новый продукт в конец списка
+          this.drawOneProductToEndListAndAddToObject(
+            listId,
+            response.newProductId,
+            response.newProductName);
+        } else {
+          this.errorToConsole(response);
+        }
       });
       // ------------------------------------------------------------
     }
@@ -698,18 +729,5 @@ class ProductListV2 {
     } else {
       throw new Error(`Не удалось получить идентификатор списка продуктов пользователя`);
     }
-  }
-}
-
-class FetchClass {
-  fetchJSONFromURL(url) {
-    /**
-     * Получает promice для последующего использования в async/await
-     */
-    return fetch(url)
-      .then((response) => response.json())
-      .then((result) => {
-        return result;
-      });
   }
 }

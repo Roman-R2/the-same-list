@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import UserCreationForm
 
+from products_list.models import List
+
 
 def register(request):
     """Регистрирует нового пользователя."""
@@ -14,6 +16,10 @@ def register(request):
 
         if form.is_valid():
             new_user = form.save()
+
+            # Создадим новый пустой список для пользователя
+            List.objects.create(title='Новый список', owner=new_user)
+
             # Выполнение входа и перенаправление на домашнюю страницу.
             login(request, new_user)
             return redirect('products_list:index')

@@ -14,6 +14,6 @@ urlpatterns = [
     path('v1/set_list_new_name/', views.set_list_new_name, name='set_list_new_name'),
     # Создадим новый пустой список
     path('v1/add_new_list/', views.add_new_list, name='add_new_list'),
-    # Для запроса данных списка по его id
-    path('v1/get_list_for_id/', views.get_list_for_id, name='get_list_for_id'),
+    # Удалить список по его id
+    path('v1/delete_list_for_id/', views.delete_list_for_id, name='delete_list_for_id'),
 ]
