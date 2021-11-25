@@ -42,7 +42,7 @@ def add_product_for_name(request):
         product_name = unpack_json['productName']
         quantity = unpack_json['quantity']
 
-        print('unpack_json -------> ', list_id, product_name, quantity)
+        # print('unpack_json -------> ', list_id, product_name, quantity)
 
         add_product_to_dict = Product.objects.create(
             name=product_name,
@@ -52,28 +52,15 @@ def add_product_for_name(request):
         new_product_in_list = ProductInList.objects.create(
             name=add_product_to_dict,
             list=List.objects.get(pk=list_id),
-            quantity=quantity, owner=request.user
+            quantity=quantity,
+            owner=request.user
         )
-
-        # print(
-        #     'add_product_to_dict ----> ',
-        #     add_product_to_dict.pk,
-        #     add_product_to_dict.name,
-        #     add_product_to_dict.owner,
-        # )
-        # print(
-        #     'new_product_in_list ----> ',
-        #     new_product_in_list.pk,
-        #     new_product_in_list.name,
-        #     new_product_in_list.list,
-        #     new_product_in_list.created_at,
-        #     new_product_in_list.owner,
-        # )
 
         return JsonResponse({
             "status": "success",
             "newProductId": new_product_in_list.pk,
             "newProductName": add_product_to_dict.name,
+            "newProductQuantity": new_product_in_list.quantity,
         }, status=HTTPStatusCode.CREATED)
     return JsonResponse({"status": "error"})
 
@@ -106,20 +93,12 @@ def add_product_for_id(request):
         owner=request.user
     )
 
-    print(
-        'new_product_in_list ----> ',
-        new_product_in_list.pk,
-        new_product_in_list.name,
-        new_product_in_list.list,
-        new_product_in_list.created_at,
-        new_product_in_list.owner,
-    )
-
     return JsonResponse(
         {
             "status": "success",
             "newProductId": new_product_in_list.pk,
             "newProductName": new_product_in_list.name.name,
+            "newProductQuantity": new_product_in_list.quantity,
         }, status=HTTPStatusCode.CREATED)
 
 
@@ -145,7 +124,7 @@ def get_lists_and_products(request):
         products = {}
         for product in products_for_list:
             products.update({
-                product.pk: product.name.name,
+                product.pk: [product.name.name, product.quantity],
             })
         data.update({
             some_list.pk: {

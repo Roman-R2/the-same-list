@@ -38,6 +38,7 @@ class ProductInList(models.Model):
     name = models.ForeignKey(Product, on_delete=models.CASCADE)
     list = models.ForeignKey(List, on_delete=models.CASCADE)
     quantity = models.CharField(max_length=150, blank=True)
+    is_checked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 

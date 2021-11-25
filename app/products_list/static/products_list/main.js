@@ -134,6 +134,8 @@ class ProductListV2 {
      * Производит с полученным объектом действия добавления событий и отрисовки
      */
 
+    console.log(this.receivedListObj)
+
     this.setFunctionalForClickCreateNewList();
 
     if (Object.keys(this.receivedListObj).length !== 0) {
@@ -187,45 +189,36 @@ class ProductListV2 {
     });
   }
 
-  drawOneProductToEndListAndAddToObject(listId, productId, productName) {
-    let str = ``;
-    str += `<label class="list-group-item">
-                  <input class="form-check-input me-1" type="checkbox" value="" data-id="${productId}">
-                  ${productName}
-              </label>`;
-    this.productsEl.insertAdjacentHTML('beforeend', str);
-    this.addProductToObjectInClass(listId, productId, productName);
+  getTemplateForProduct(productId, productName, productQuantity) {
+    return `<li class="list-group-item" data-id="${productId}">
+              <div class="row">
+                <div class="col-8 col-lg-6"> 
+                <label class="b-contain">
+                  <span>${productName}</span>
+                  <input type="checkbox">
+                  <div class="b-input"></div>
+                </label>             
+<!--                  <input class="custom-checkbox" type="checkbox" value="">-->
+                </div>
+                <div class="col-4 col-lg-6" style="color: #6f6e6e">
+                  ${productQuantity}
+                </div>
+              </div>
+            </li>`
   }
 
-  addProductToObjectInClass(listId, productId, productName) {
+  drawOneProductToEndListAndAddToObject(listId, productId, productName, productQuantity) {
+    let str = ``;
+    str += this.getTemplateForProduct(productId, productName, productQuantity);
+    this.productsEl.insertAdjacentHTML('beforeend', str);
+    this.addProductToObjectInClass(listId, productId, productName, productQuantity);
+  }
+
+  addProductToObjectInClass(listId, productId, productName, productQuantity) {
     /**
      * Добавит продукт в объект списков класса ProductListV2 по переданным аргументам
      */
-    this.receivedListObj[listId]['products'][productId] = productName;
-  }
-
-  askForProductAndDrawInList(listId, productDictId, newProductId) {
-    /**
-     * Отправит запрос на сервер и дорисует новый продукт productId в конец списка listId
-     * @type {XMLHttpRequest}
-     */
-
-
-    // ------------ Конструкция асинхронного запроса--------------
-    new SomeJsonRequests().sendJSONRequest(
-      document.location.origin + "/api/v1/get_product_name_for_id/",
-      {"productId": productDictId}
-    ).then((data) => {
-      let product = JSON.parse(data);
-      console.log('-------------> ', product.product_name)
-      this.drawOneProductToEndListAndAddToObject(listId, newProductId, product.product_name);
-      console.log(this);
-
-    }).catch((err) => {
-      console.error('Ошибка запроса к серверу!', err.statusText);
-    });
-    // ------------------------------------------------------------
-
+    this.receivedListObj[listId]['products'][productId] = [productName, productQuantity];
   }
 
   clearProductLists() {
@@ -274,10 +267,11 @@ class ProductListV2 {
     let str = ``;
     let odj = this.receivedListObj[listId]['products'];
     Object.keys(odj).forEach(product_id => {
-      str += `<label class="list-group-item">
-                  <input class="form-check-input me-1" type="checkbox" value="">
-                  ${odj[product_id]}
-              </label>`;
+      str += this.getTemplateForProduct(product_id, odj[product_id][0], odj[product_id][1]);
+      // str += `<label class="list-group-item">
+      //             <input class="form-check-input me-1" type="checkbox" value="">
+      //             ${odj[product_id]}
+      //         </label>`;
     });
     // Вставим строки с названиями продуктов
     this.productsEl.insertAdjacentHTML('beforeend', str);
@@ -441,10 +435,14 @@ class ProductListV2 {
     // Событие на фокусировку поля
     this.addProductInputEl.addEventListener('focus', ({target}) => {
 
-      // console.log('addEventListener_focus');
+      console.log('addEventListener_focus');
 
       //Добавим тень на заднем фоне
       this.setBackgroundShadow(true);
+
+      //Поменяем надпись внутри данного input
+      console.dir(this.addProductInputEl);
+      this.addProductInputEl.placeholder = "Название : количество";
 
       // Вернем объект с продуктами,а когда придет информация от сервера,
       // то заберем продукты в объект allProducts вида {productId: productName}
@@ -522,6 +520,9 @@ class ProductListV2 {
           //Деактивируем кнопку для новых продуктов
           this.setModButtonForAddNewProduct('disable');
 
+          //Поменяем надпись внутри данного input
+          this.addProductInputEl.placeholder = "Добавьте новый товар в список...";
+
           //Уберем тень на заднем фоне
           this.setBackgroundShadow(false);
         }
@@ -548,6 +549,9 @@ class ProductListV2 {
 
         //Деактивируем кнопку для новых продуктов
         this.setModButtonForAddNewProduct('disable');
+
+        //Поменяем надпись внутри данного input
+        this.addProductInputEl.placeholder = "Добавьте новый товар в список...";
 
         //Уберем тень на заднем фоне
         this.setBackgroundShadow(false);
@@ -581,6 +585,7 @@ class ProductListV2 {
      */
     this.productChoiceEl.addEventListener('click', ({target}) => {
 
+
       //Очистим поле ввода нового продукта
       this.clearNewProductInputValue();
 
@@ -594,6 +599,9 @@ class ProductListV2 {
 
         //Уберем тень на заднем фоне
         this.setBackgroundShadow(false);
+
+        //Поменяем надпись внутри данного input
+        this.addProductInputEl.placeholder = "Добавьте новый товар в список...";
       }
     })
   }
@@ -608,12 +616,18 @@ class ProductListV2 {
       // ------------ Конструкция асинхронного запроса ----------
       this.someAsyncPostResp(
         document.location.origin + "/api/v1/add_product_for_id/",
-        {"listId": listId, "productId": productId, "quantity": "500 гр."}
+        {"listId": listId, "productId": productId, "quantity": ""}
       ).then(response => {
         response = JSON.parse(response)
         if (response.status === 'success') {
+
           // Дорисуем новый продукт в конец списка
-          this.drawOneProductToEndListAndAddToObject(listId, response.newProductId, response.newProductName);
+          this.drawOneProductToEndListAndAddToObject(
+            listId,
+            response.newProductId,
+            response.newProductName,
+            response.newProductQuantity
+          );
         } else {
           this.errorToConsole(response);
         }
@@ -623,26 +637,92 @@ class ProductListV2 {
 
     if (productId == null) {
 
-      // ------------ Конструкция асинхронного запроса ----------
-      this.someAsyncPostResp(
-        document.location.origin + "/api/v1/add_product_for_name/",
-        {"listId": listId, "productName": productName, "quantity": "500 гр."}
-      ).then(response => {
-        response = JSON.parse(response)
-        if (response.status === 'success') {
-          // Дорисуем новый продукт в конец списка
-          this.drawOneProductToEndListAndAddToObject(
-            listId,
-            response.newProductId,
-            response.newProductName);
-        } else {
-          this.errorToConsole(response);
-        }
+      let {error, name, quantity} = this.stringProcessingForJSONValues(productName);
+
+      if (!error) {
+        // ------------ Конструкция асинхронного запроса ----------
+        this.someAsyncPostResp(
+          document.location.origin + "/api/v1/add_product_for_name/",
+          {"listId": listId, "productName": name, "quantity": quantity}
+        ).then(response => {
+          response = JSON.parse(response)
+          if (response.status === 'success') {
+            // Дорисуем новый продукт в конец списка
+            this.drawOneProductToEndListAndAddToObject(
+              listId,
+              response.newProductId,
+              response.newProductName,
+              response.newProductQuantity,
+            );
+          } else {
+            this.errorToConsole(response);
+          }
+        });
+        // ------------------------------------------------------------
+      }
+
+
+    }
+  }
+
+  stringProcessingForJSONValues(string) {
+    /**
+     * Обработает строку вида "название:количество", которую ввели при добавлении нового продукта
+     * и вычленит из нее имя продукта количество если оно есть. Также посмотрит не пустое ли имя
+     * продукта пришло к нам
+     * @type {Array|*}
+     */
+
+    let i = string.indexOf(':');
+    if (i !== -1) {
+      let split_list = [string.slice(0, i), string.slice(i + 1)];
+
+      // Уберем пробелы вначале и в конце строк в массиве
+      split_list.forEach((el, id) => {
+        el = el.trim()
+        split_list[id] = el;
       });
-      // ------------------------------------------------------------
+
+
+      if (this.isEmpty(split_list[0])) {
+        return {
+          error: true,
+          name: "",
+          quantity: ""
+        }
+      } else {
+        return {
+          error: false,
+          name: split_list[0],
+          quantity: split_list[1]
+        }
+      }
+    } else {
+      string = string.trim();
+      if (this.isEmpty(string)) {
+        return {
+          error: true,
+          name: "",
+          quantity: ""
+        }
+      } else {
+        return {
+          error: false,
+          name: string,
+          quantity: ""
+        }
+      }
+
     }
 
 
+  }
+
+  isEmpty(str) {
+    /**
+     * Проверит строку на пустоту
+     */
+    return str.trim() === '';
   }
 
   setEventForOutingFromNewProductInput() {
@@ -652,8 +732,13 @@ class ProductListV2 {
     this.addProductInputEl.addEventListener('blur', ({target}) => {
       window.setTimeout(() => {
         this.clearProductButtonsFromWindow();
+
+        //Поменяем надпись внутри данного input
+        this.addProductInputEl.placeholder = "Добавьте новый товар в список...";
+
         //Уберем тень на заднем фоне
         this.setBackgroundShadow(false);
+
       }, 100);
     });
   }
@@ -735,4 +820,8 @@ class ProductListV2 {
       throw new Error(`Не удалось получить идентификатор списка продуктов пользователя`);
     }
   }
+
+  //----------- Все, что связано с продуктами в конкретном списке --------------
+  // ---------------------------------------------------------------------------
+
 }
