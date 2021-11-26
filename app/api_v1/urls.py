@@ -16,4 +16,9 @@ urlpatterns = [
     path('v1/add_new_list/', views.add_new_list, name='add_new_list'),
     # Удалить список по его id
     path('v1/delete_list_for_id/', views.delete_list_for_id, name='delete_list_for_id'),
+    # Удалить продукт из списка продуктов по его id в списке продуктов
+    path('v1/delete_product_for_id/', views.delete_product_for_id, name='delete_product_for_id'),
+    # Переключить выбор продукта в противоположное положение
+    path('v1/toggle_check_for_product/', views.toggle_check_for_product,
+         name='toggle_check_for_product'),
 ]

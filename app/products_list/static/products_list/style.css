@@ -56,8 +56,36 @@
     color: dodgerblue;
 }
 
+.color-grey {
+    color: #dfdfdf;
+}
+
 .menu-area {
     padding: 0 10px;
+}
+
+.menu-area-products {
+    padding: 4px 10px 4px 10px;
+}
+
+.all-menu-area-products {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border-left: 3px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+.ml-10 {
+    margin-left: 10px;
+}
+
+.mr-10 {
+    margin-right: 10px;
 }
 
 .p-e-none {
@@ -84,5 +112,17 @@
     bottom: 0;
     background: rgba(255, 255, 255, .7);
     z-index: 200;
+}
 
+.nowrap {
+    white-space: nowrap;
+}
+
+.bb-dotted {
+    margin-bottom: 10px;
+    border-bottom: 2px solid rgba(39, 159, 164, 0.31);
+}
+
+.checked-background {
+    background: linear-gradient(45deg, #e6e9f0, #eff1f3);
 }

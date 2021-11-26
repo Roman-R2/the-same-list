@@ -124,7 +124,7 @@ def get_lists_and_products(request):
         products = {}
         for product in products_for_list:
             products.update({
-                product.pk: [product.name.name, product.quantity],
+                product.pk: [product.name.name, product.quantity, product.is_checked],
             })
         data.update({
             some_list.pk: {
@@ -210,7 +210,7 @@ def add_new_list(request):
 @csrf_exempt
 def delete_list_for_id(request):
     """
-    Получает и передает список по определенному id
+    Удалит список по определенному id
     :param request:
     :return:
     """
@@ -229,3 +229,52 @@ def delete_list_for_id(request):
             "status": "success",
             "deletedListId": list_id
         }, status=HTTPStatusCode.OK)
+
+
+@csrf_exempt
+def delete_product_for_id(request):
+    """
+    Удалит продукт из списка по определенному id
+    :param request:
+    :return:
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error"}, status=HTTPStatusCode.UNAUTHORIZED)
+    if request.method != 'DELETE':
+        return JsonResponse({"status": "error"}, status=HTTPStatusCode.METHOD_NOT_ALLOWED)
+
+    unpack_json = json.loads(request.body)
+    product_in_list_id = unpack_json['productInListId']
+
+    product_for_delete = ProductInList.objects.get(pk=product_in_list_id)
+    product_for_delete.delete()
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "idListWhereDeletionWas": product_for_delete.list.pk,
+            "deletedProductInListId": product_in_list_id
+        }, status=HTTPStatusCode.OK)
+
+
+@csrf_exempt
+def toggle_check_for_product(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error"}, status=HTTPStatusCode.UNAUTHORIZED)
+    if request.method != 'POST':
+        return JsonResponse({"status": "error"}, status=HTTPStatusCode.METHOD_NOT_ALLOWED)
+
+    unpack_json = json.loads(request.body)
+    product_in_list_id = unpack_json['productInListId']
+
+    product_for_check = ProductInList.objects.get(pk=product_in_list_id)
+    product_for_check.is_checked = not product_for_check.is_checked
+    product_for_check.save()
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "idListWhereCheckWas": product_for_check.list.pk,
+            "checkProductInListId": product_in_list_id,
+            "checkStatus": product_for_check.is_checked,
+        }, status=HTTPStatusCode.ACCEPTED)

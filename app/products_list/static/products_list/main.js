@@ -64,6 +64,7 @@ class ProductListV2 {
   addNewListButtonEl = document.querySelector('#addNewListButton');
   productListEl = document.querySelector('#productLists');
   productsEl = document.querySelector('#products');
+  checkedProductsEl = document.querySelector('#checkedProducts');
   addProductInputEl = document.querySelector('#addProductInput');
   addProductInputButtonEl = document.querySelector('#addProductInputButton');
   productChoiceEl = document.querySelector('#productChoice');
@@ -77,6 +78,7 @@ class ProductListV2 {
   init() {
     // Получим список с сервера
     this.getListsWithProducts();
+
     // Навесим событие на поле добавления новых продуктов
     this.AddEventFocusOnProductInput();
   }
@@ -91,6 +93,10 @@ class ProductListV2 {
 
   async someAsyncDeleteResp(url, json) {
     return await new SomeJsonRequests().sendDeleteJSONRequest(url, json);
+  }
+
+  mainObjIsEmpty() {
+    return Object.keys(this.receivedListObj).length === 0;
   }
 
 //----------- Все, что связано со списками и продуктами в них ----------------
@@ -138,12 +144,18 @@ class ProductListV2 {
 
     this.setFunctionalForClickCreateNewList();
 
-    if (Object.keys(this.receivedListObj).length !== 0) {
+    if (!this.mainObjIsEmpty()) {
       // Отобразим списки продуктов для пользователя
       this.drawProductLists(this.receivedListObj);
 
       // Отобразим продукты в первом списке и добавим выделение
       this.drawListProductsAndSetActiveClassForListId(Object.keys(this.receivedListObj)[0])
+
+      //Добавим обработчик события при клике на меню продукта
+      this.addEventForClickMenuButtonInProduct();
+
+      //Добавим обработчик события при клике на чекбокс продукта
+      this.addEventForCheckAndUncheckProduct();
 
       // Добавим функционала при клике на списки пользователя
       this.setFunctionalForClickProductsList();
@@ -192,19 +204,53 @@ class ProductListV2 {
   getTemplateForProduct(productId, productName, productQuantity) {
     return `<li class="list-group-item" data-id="${productId}">
               <div class="row">
-                <div class="col-8 col-lg-6"> 
-                <label class="b-contain">
-                  <span>${productName}</span>
+                <div class="col-6 col-lg-4"> 
+                <label class="b-contain" id="sameCheckbox" data-id="${productId}">
+                  <span class="nowrap" id="sameCheckbox" data-id="${productId}">${productName}</span>
                   <input type="checkbox">
-                  <div class="b-input"></div>
+                  <div class="b-input" id="sameCheckbox" data-id="${productId}"></div>
                 </label>             
-<!--                  <input class="custom-checkbox" type="checkbox" value="">-->
                 </div>
-                <div class="col-4 col-lg-6" style="color: #6f6e6e">
+                <div class="col-4 col-lg-6 nowrap" style="color: #6f6e6e">
                   ${productQuantity}
+                </div>
+                <div class="col-2 col-lg-2">
+                  <div class="all-menu-area-products">
+                    <span class="d-none" id="productMenuFunctionalButtons" data-id="${productId}">
+<!--                        <i class="fas fa-pencil-alt color-blue menu-area-products ml-10"></i>-->
+                        <i class="far fa-trash-alt color-red menu-area-products ml-10 mr-10" id="productsCheckboxActionDelete" data-id="${productId}"></i>
+                    </span>
+                      <i class="fas fa-ellipsis-v float-end menu-area-products color-grey" id="productsCheckboxMenu" data-id="${productId}"></i>
+                  </div>
                 </div>
               </div>
             </li>`
+  }
+
+  getCheckedTemplateForProduct(productId, productName, productQuantity) {
+    return `<li class="list-group-item checked-background" data-id="${productId}">
+                        <div class="row">
+                            <div class="col-6 col-lg-4">
+                                <label class="b-contain" id="sameCheckbox" data-id="${productId}">
+                                    <span class="nowrap" id="sameCheckbox" data-id="${productId}">${productName}</span>
+                                    <input type="checkbox" checked>
+                                    <div class="b-input" id="sameCheckbox" data-id="${productId}"></div>
+                                </label>
+                            </div>
+                            <div class="col-4 col-lg-6 nowrap" style="color: #6f6e6e">
+                                ${productQuantity}
+                            </div>
+                            <div class="col-2 col-lg-2">
+                              <div class="all-menu-area-products">
+                                <span class="d-none" id="productMenuFunctionalButtons" data-id="${productId}">
+            <!--                        <i class="fas fa-pencil-alt color-blue menu-area-products ml-10"></i>-->
+                                    <i class="far fa-trash-alt color-red menu-area-products ml-10 mr-10" id="productsCheckboxActionDelete" data-id="${productId}"></i>
+                                </span>
+                                  <i class="fas fa-ellipsis-v float-end menu-area-products color-grey" id="productsCheckboxMenu" data-id="${productId}"></i>
+                              </div>
+                            </div>
+                        </div>
+                    </li>`
   }
 
   drawOneProductToEndListAndAddToObject(listId, productId, productName, productQuantity) {
@@ -261,21 +307,124 @@ class ProductListV2 {
     this.addActiveClassForList(listId);
   }
 
+  addEventForCheckAndUncheckProduct() {
+    /**
+     * Добавляет событие по выбору продукта в списке продуктов
+     */
+    let productsEl = document.querySelector('#products');
+    let checkedProductsEl = document.querySelector('#checkedProducts');
+
+    // События для productsEl
+    productsEl.addEventListener('click', ({target}) => {
+      // Если кликаем чекбоксу
+      if (target.id === 'sameCheckbox') {
+        let targetCheckboxId = target.dataset.id;
+        console.log(target, targetCheckboxId)
+        this.checkProductAsyncRequest(targetCheckboxId);
+      }
+    });
+
+    // События для checkedProductsEl
+    checkedProductsEl.addEventListener('click', ({target}) => {
+      // Если кликаем чекбоксу
+      if (target.id === 'sameCheckbox') {
+        let targetCheckboxId = target.dataset.id;
+        console.log(target, targetCheckboxId)
+        this.checkProductAsyncRequest(targetCheckboxId);
+      }
+    });
+  }
+
+  checkProductAsyncRequest(targetCheckboxId) {
+    /**
+     * Отправить асинхронный запрос на сервер для изменения состояния выбора продукта
+     */
+    // ------------ Конструкция асинхронного запроса ----------
+    this.someAsyncPostResp(
+      document.location.origin + "/api/v1/toggle_check_for_product/",
+      {"productInListId": targetCheckboxId}
+    ).then(response => {
+      response = JSON.parse(response)
+      if (response.status === 'success') {
+        console.log(response)
+        // Изменим информацию по продукту в объекте
+        this.receivedListObj[response.idListWhereCheckWas]
+          .products[response.checkProductInListId][2] = response.checkStatus;
+        // Отобразим состояние чекбокса и поместим в соответствующий список выбора
+        this.drawListProductsAndSetActiveClassForListId(response.idListWhereCheckWas);
+      } else {
+        this.errorToConsole(response);
+      }
+    });
+    // ------------------------------------------------------------
+  }
+
+  addEventForClickMenuButtonInProduct() {
+    /**
+     * Добавит события на клик по кнопке меню у конкретного продукта
+     */
+    let productsEl = document.querySelector('#products');
+    productsEl.addEventListener('click', ({target}) => {
+
+      // Если кликаем по кнопке меню
+      if (target.id === 'productsCheckboxMenu') {
+        let targetProductMenuId = target.dataset.id;
+        let productMenuFunctionalButtonsEls = document.querySelectorAll('#productMenuFunctionalButtons');
+        productMenuFunctionalButtonsEls.forEach(el => {
+          if (targetProductMenuId === el.dataset.id) {
+            el.classList.toggle('d-none');
+          }
+        });
+      }
+
+      // Если кликаем по кнопке действия удаления
+      // <i class="fas fa-spinner menu-area-products fa-spin"></i>
+      if (target.id === 'productsCheckboxActionDelete') {
+        let targetDeleteIconId = target.dataset.id;
+
+        target.classList.remove("far", "fa-trash-alt", "color-red")
+        target.classList.add("fas", "fa-spinner", "color-grey", "fa-spin")
+
+        // ------------ Конструкция асинхронного запроса ----------
+        this.someAsyncDeleteResp(
+          document.location.origin + "/api/v1/delete_product_for_id/",
+          {"productInListId": targetDeleteIconId}
+        ).then(response => {
+          response = JSON.parse(response)
+          if (response.status === 'success') {
+            // Удалим в объекте данный продукт
+            delete this.receivedListObj[response.idListWhereDeletionWas].products[response.deletedProductInListId]
+
+            // Отобразим продукты в первом списке и добавим выделение
+            this.drawListProductsAndSetActiveClassForListId(response.idListWhereDeletionWas);
+          } else {
+            this.errorToConsole(response);
+          }
+        });
+        // ------------------------------------------------------------
+      }
+
+    });
+  }
 
   drawProductsForListId(listId) {
     this.clearProductsFromLabels();
-    let str = ``;
+
+    let str_not_checked_product = ``;
+    let str_checked_product = ``;
     let odj = this.receivedListObj[listId]['products'];
     Object.keys(odj).forEach(product_id => {
-      str += this.getTemplateForProduct(product_id, odj[product_id][0], odj[product_id][1]);
-      // str += `<label class="list-group-item">
-      //             <input class="form-check-input me-1" type="checkbox" value="">
-      //             ${odj[product_id]}
-      //         </label>`;
+      if (!odj[product_id][2]) {
+        str_not_checked_product += this.getTemplateForProduct(product_id, odj[product_id][0], odj[product_id][1]);
+      } else {
+        str_checked_product += this.getCheckedTemplateForProduct(product_id, odj[product_id][0], odj[product_id][1]);
+      }
     });
     // Вставим строки с названиями продуктов
-    this.productsEl.insertAdjacentHTML('beforeend', str);
+    this.productsEl.insertAdjacentHTML('beforeend', str_not_checked_product);
+    this.checkedProductsEl.insertAdjacentHTML('beforeend', str_checked_product);
   }
+
 
   addActiveClassForList(listId) {
     listId = listId.toString();
@@ -327,8 +476,7 @@ class ProductListV2 {
     this.productListEl.addEventListener('click', ({target}) => {
       // Если кликаем просто по списку
       if (target.tagName === "A") {
-        this.drawProductsForListId(target.dataset.id);
-        this.addActiveClassForList(target.dataset.id);
+        this.drawListProductsAndSetActiveClassForListId(target.dataset.id);
       }
 
       // Если кликаем по кнопке меню
@@ -423,6 +571,7 @@ class ProductListV2 {
 
   clearProductsFromLabels() {
     this.productsEl.innerHTML = '';
+    this.checkedProductsEl.innerHTML = '';
   }
 
 
@@ -432,6 +581,8 @@ class ProductListV2 {
     /**
      * Добавляет событие на выбор поля для ввода нового продукта в список
      */
+
+
     // Событие на фокусировку поля
     this.addProductInputEl.addEventListener('focus', ({target}) => {
 
@@ -463,6 +614,7 @@ class ProductListV2 {
 
     });
 
+
     // Событие клика по кнопкам продукта productChoiceEl
     this.setEventForClickNewProductField();
 
@@ -477,6 +629,8 @@ class ProductListV2 {
 
     // Событие расфокусировки с поля addProductInputEl
     this.setEventForOutingFromNewProductInput();
+
+
   }
 
   setEventForInputNewProductField() {
@@ -583,8 +737,9 @@ class ProductListV2 {
     /**
      * Добавляет событие клика по кнопкам продукта productChoiceEl и отправляет данные на сервер
      */
-    this.productChoiceEl.addEventListener('click', ({target}) => {
 
+
+    this.productChoiceEl.addEventListener('click', ({target}) => {
 
       //Очистим поле ввода нового продукта
       this.clearNewProductInputValue();
@@ -603,7 +758,8 @@ class ProductListV2 {
         //Поменяем надпись внутри данного input
         this.addProductInputEl.placeholder = "Добавьте новый товар в список...";
       }
-    })
+    });
+
   }
 
   sendJSONNewProductToServer(listId, productId = null, productName = null) {

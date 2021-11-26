@@ -31,5 +31,49 @@
       "created_at": null,
       "owner": 1
     }
+  },
+  {
+    "model": "products_list.productinlist",
+    "pk": 4,
+    "fields": {
+      "name": 2,
+      "list": 1,
+      "quantity": "1",
+      "created_at": null,
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.productinlist",
+    "pk": 5,
+    "fields": {
+      "name": 5,
+      "list": 1,
+      "quantity": "упаковка",
+      "created_at": null,
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.productinlist",
+    "pk": 6,
+    "fields": {
+      "name": 1,
+      "list": 1,
+      "quantity": "бутылка",
+      "created_at": null,
+      "owner": 1
+    }
+  },
+  {
+    "model": "products_list.productinlist",
+    "pk": 7,
+    "fields": {
+      "name": 4,
+      "list": 1,
+      "quantity": "700 гр.",
+      "created_at": null,
+      "owner": 1
+    }
   }
 ]
