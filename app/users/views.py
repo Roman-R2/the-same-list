@@ -7,14 +7,18 @@ from users.forms import UserLoginForm, UserRegisterForm, UserEditForm
 
 
 def login(request):
-    login_form = UserLoginForm(data=request.POST)
-    if request.method == 'POST' and login_form.is_valid():
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = auth.authenticate(username=username, password=password)
-        if user and user.is_active:
-            auth.login(request, user)
-            return redirect('products_list:index')
+    if request.method == 'POST':
+        login_form = UserLoginForm(data=request.POST)
+        if login_form.is_valid():
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = auth.authenticate(username=username, password=password)
+            if user and user.is_active:
+                auth.login(request, user)
+                return redirect('products_list:index')
+    else:
+        login_form = UserLoginForm()
+
     context = {
         'form': login_form,
     }
@@ -26,6 +30,7 @@ def register(request):
     """Регистрирует нового пользователя."""
     if request.method == 'POST':
         register_form = UserRegisterForm(request.POST)
+
         if register_form.is_valid():
             new_user = register_form.save()
 
@@ -35,8 +40,9 @@ def register(request):
             # Выполнение входа и перенаправление на домашнюю страницу.
             auth.login(request, new_user)
             return redirect('products_list:index')
+    else:
+        register_form = UserRegisterForm()
 
-    register_form = UserRegisterForm()
     context = {'form': register_form}
 
     return render(request, 'users/register.html', context=context)
@@ -50,8 +56,8 @@ def edit(request):
         if edit_form.is_valid():
             edit_form.save()
             return redirect('products_list:index')
-
-    edit_form = UserEditForm(instance=request.user)
+    else:
+        edit_form = UserEditForm(instance=request.user)
     context = {
         'form': edit_form,
     }
