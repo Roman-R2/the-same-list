@@ -1,0 +1,13 @@
+{% extends "main_page/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+    <div class="m_mt4">
+        <h1 class="display-5 text-center">Ваш профиль</h1>
+        <form method="post" action="{% url 'users:edit' %}" class="form">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% bootstrap_button button_type="submit" content="Сохранить" %}
+        </form>
+    </div>
+{% endblock content %}

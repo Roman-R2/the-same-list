@@ -125,4 +125,5 @@
 
 .checked-background {
     background: linear-gradient(45deg, #e6e9f0, #eff1f3);
+    text-decoration: #6c757d 2px line-through;
 }

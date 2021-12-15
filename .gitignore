@@ -6,8 +6,8 @@
 .env.dev
 
 ### VENV ###
-venv
-venv_microsoft
+venv_ubuntu/
+venv_microsoft/
 
 ### Python ###
 __pycache__/

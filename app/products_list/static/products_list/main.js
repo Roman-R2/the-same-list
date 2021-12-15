@@ -140,7 +140,7 @@ class ProductListV2 {
      * Производит с полученным объектом действия добавления событий и отрисовки
      */
 
-    console.log(this.receivedListObj)
+    // console.log(this.receivedListObj)
 
     this.setFunctionalForClickCreateNewList();
 
@@ -202,6 +202,10 @@ class ProductListV2 {
   }
 
   getTemplateForProduct(productId, productName, productQuantity) {
+    /**
+     * Возвращает html-шаблон строки для одного продукта, который заполняется соответствующими
+     * аргументами
+     */
     return `<li class="list-group-item" data-id="${productId}">
               <div class="row">
                 <div class="col-6 col-lg-4"> 
@@ -243,7 +247,6 @@ class ProductListV2 {
                             <div class="col-2 col-lg-2">
                               <div class="all-menu-area-products">
                                 <span class="d-none" id="productMenuFunctionalButtons" data-id="${productId}">
-            <!--                        <i class="fas fa-pencil-alt color-blue menu-area-products ml-10"></i>-->
                                     <i class="far fa-trash-alt color-red menu-area-products ml-10 mr-10" id="productsCheckboxActionDelete" data-id="${productId}"></i>
                                 </span>
                                   <i class="fas fa-ellipsis-v float-end menu-area-products color-grey" id="productsCheckboxMenu" data-id="${productId}"></i>
@@ -319,7 +322,7 @@ class ProductListV2 {
       // Если кликаем чекбоксу
       if (target.id === 'sameCheckbox') {
         let targetCheckboxId = target.dataset.id;
-        console.log(target, targetCheckboxId)
+        // console.log(target, targetCheckboxId)
         this.checkProductAsyncRequest(targetCheckboxId);
       }
     });
@@ -329,7 +332,7 @@ class ProductListV2 {
       // Если кликаем чекбоксу
       if (target.id === 'sameCheckbox') {
         let targetCheckboxId = target.dataset.id;
-        console.log(target, targetCheckboxId)
+        // console.log(target, targetCheckboxId)
         this.checkProductAsyncRequest(targetCheckboxId);
       }
     });
@@ -346,7 +349,7 @@ class ProductListV2 {
     ).then(response => {
       response = JSON.parse(response)
       if (response.status === 'success') {
-        console.log(response)
+        // console.log(response)
         // Изменим информацию по продукту в объекте
         this.receivedListObj[response.idListWhereCheckWas]
           .products[response.checkProductInListId][2] = response.checkStatus;
@@ -359,51 +362,64 @@ class ProductListV2 {
     // ------------------------------------------------------------
   }
 
+
+  productMenuButtonSequencing(target) {
+
+    // Если кликаем по кнопке меню
+    if (target.id === 'productsCheckboxMenu') {
+      let targetProductMenuId = target.dataset.id;
+      let productMenuFunctionalButtonsEls = document.querySelectorAll('#productMenuFunctionalButtons');
+      productMenuFunctionalButtonsEls.forEach(el => {
+        if (targetProductMenuId === el.dataset.id) {
+          el.classList.toggle('d-none');
+        }
+      });
+    }
+
+    // Если кликаем по кнопке действия удаления
+    // <i class="fas fa-spinner menu-area-products fa-spin"></i>
+    if (target.id === 'productsCheckboxActionDelete') {
+      let targetDeleteIconId = target.dataset.id;
+
+      target.classList.remove("far", "fa-trash-alt", "color-red")
+      target.classList.add("fas", "fa-spinner", "color-grey", "fa-spin")
+
+      // ------------ Конструкция асинхронного запроса ----------
+      this.someAsyncDeleteResp(
+        document.location.origin + "/api/v1/delete_product_for_id/",
+        {"productInListId": targetDeleteIconId}
+      ).then(response => {
+        response = JSON.parse(response)
+        if (response.status === 'success') {
+          // Удалим в объекте данный продукт
+          delete this.receivedListObj[response.idListWhereDeletionWas].products[response.deletedProductInListId]
+
+          // Отобразим продукты в первом списке и добавим выделение
+          this.drawListProductsAndSetActiveClassForListId(response.idListWhereDeletionWas);
+        } else {
+          this.errorToConsole(response);
+        }
+      });
+      // ------------------------------------------------------------
+    }
+
+  }
+
+
   addEventForClickMenuButtonInProduct() {
     /**
      * Добавит события на клик по кнопке меню у конкретного продукта
      */
     let productsEl = document.querySelector('#products');
+    // console.log(productsEl)
     productsEl.addEventListener('click', ({target}) => {
+      this.productMenuButtonSequencing(target)
+    });
 
-      // Если кликаем по кнопке меню
-      if (target.id === 'productsCheckboxMenu') {
-        let targetProductMenuId = target.dataset.id;
-        let productMenuFunctionalButtonsEls = document.querySelectorAll('#productMenuFunctionalButtons');
-        productMenuFunctionalButtonsEls.forEach(el => {
-          if (targetProductMenuId === el.dataset.id) {
-            el.classList.toggle('d-none');
-          }
-        });
-      }
-
-      // Если кликаем по кнопке действия удаления
-      // <i class="fas fa-spinner menu-area-products fa-spin"></i>
-      if (target.id === 'productsCheckboxActionDelete') {
-        let targetDeleteIconId = target.dataset.id;
-
-        target.classList.remove("far", "fa-trash-alt", "color-red")
-        target.classList.add("fas", "fa-spinner", "color-grey", "fa-spin")
-
-        // ------------ Конструкция асинхронного запроса ----------
-        this.someAsyncDeleteResp(
-          document.location.origin + "/api/v1/delete_product_for_id/",
-          {"productInListId": targetDeleteIconId}
-        ).then(response => {
-          response = JSON.parse(response)
-          if (response.status === 'success') {
-            // Удалим в объекте данный продукт
-            delete this.receivedListObj[response.idListWhereDeletionWas].products[response.deletedProductInListId]
-
-            // Отобразим продукты в первом списке и добавим выделение
-            this.drawListProductsAndSetActiveClassForListId(response.idListWhereDeletionWas);
-          } else {
-            this.errorToConsole(response);
-          }
-        });
-        // ------------------------------------------------------------
-      }
-
+    let checkedProductsEl = document.querySelector('#checkedProducts');
+    // console.log(checkedProductsEl)
+    checkedProductsEl.addEventListener('click', ({target}) => {
+      this.productMenuButtonSequencing(target)
     });
   }
 
@@ -586,13 +602,13 @@ class ProductListV2 {
     // Событие на фокусировку поля
     this.addProductInputEl.addEventListener('focus', ({target}) => {
 
-      console.log('addEventListener_focus');
+      // console.log('addEventListener_focus');
 
       //Добавим тень на заднем фоне
       this.setBackgroundShadow(true);
 
       //Поменяем надпись внутри данного input
-      console.dir(this.addProductInputEl);
+      // console.dir(this.addProductInputEl);
       this.addProductInputEl.placeholder = "Название : количество";
 
       // Вернем объект с продуктами,а когда придет информация от сервера,

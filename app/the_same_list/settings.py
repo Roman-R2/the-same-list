@@ -108,16 +108,20 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation'
+                '.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation'
+                '.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation'
+                '.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation'
+                '.NumericPasswordValidator',
     },
 ]
 
@@ -139,7 +143,8 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Чтобы django знал, где после @login_required находится страница аутентификации
+# Чтобы django знал, где после @login_required
+# находится страница аутентификации
 LOGIN_URL = '/users/login/'
 
 # Static files (CSS, JavaScript, Images)
@@ -151,6 +156,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'the_same_list/static'),
     os.path.join(BASE_DIR, 'products_list/static'),
+    os.path.join(BASE_DIR, 'main_page/static'),
 ]
 
 # Укажем django куда помещать выгружаемые файлы
@@ -176,7 +182,6 @@ if DEBUG is True:
     DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME')
     DJANGO_SUPERUSER_PASSWORD = os.getenv('DJANGO_SUPERUSER_PASSWORD')
     DJANGO_SUPERUSER_EMAIL = os.getenv('DJANGO_SUPERUSER_EMAIL')
-
 
 # Эксперимент с выполнением sql запроса для создания представления(VIEW) в БД
 # def execute_my_sql_for_create_view_in_db():
